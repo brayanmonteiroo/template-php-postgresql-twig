@@ -20,15 +20,24 @@ O `.env.example` já está configurado para o Docker (DB_HOST=postgres, etc.). A
 
 ## Banco de dados
 
-Com os containers no ar, rode as migrations e o seed (o banco já é criado pelo compose):
+Migrations são gerenciadas pelo **Phinx**. O banco já é criado pelo Docker Compose.
+
+Com os containers no ar, rode as migrations e o seed:
 
 ```bash
-docker compose exec -T postgres psql -U postgres -d template_admin < database/migrations/001_create_tables.sql
+docker compose exec app vendor/bin/phinx migrate -e development
 docker compose exec -T postgres psql -U postgres -d template_admin < database/seeds/001_roles_permissions_admin.sql
 docker compose exec app php database/seed_admin.php
 ```
 
 Usuário inicial: `admin@example.com` / `admin123`
+
+**Comandos Phinx úteis** (rodar com `docker compose exec app vendor/bin/phinx ...` ou, fora do Docker, `vendor/bin/phinx ...` com `.env` configurado):
+
+- `phinx migrate -e development` – aplica migrations pendentes
+- `phinx rollback -e development` – desfaz a última migration
+- `phinx status -e development` – lista migrations e status
+- `phinx create NomeDaMigration` – gera nova migration em `database/migrations/`
 
 Se o projeto já estava instalado antes de incluir as telas de Papéis e Permissões, rode novamente o seed para criar as permissões `role.*` e `permission.*` e atribuí-las ao admin:
 
@@ -51,7 +60,7 @@ http://localhost:8080
 - `src/Core/` – dispatcher (FastRoute + middlewares)
 - `config/` – app e database
 - `views/` – templates Twig
-- `database/migrations/` e `database/seeds/` – SQL
+- `database/migrations/` – migrations Phinx (PHP); `database/seeds/` – SQL de dados iniciais
 - `tests/` – PHPUnit
 
 ## Testes
