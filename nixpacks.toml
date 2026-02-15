@@ -2,5 +2,5 @@
 # Nao defina NIXPACKS_PHP_ROOT_DIR / NIXPACKS_PHP_FALLBACK_PATH no Coolify.
 
 [variables]
-NIXPACKS_PHP_ROOT_DIR = "public"
+NIXPACKS_PHP_ROOT_DIR = "/app/public"
 NIXPACKS_PHP_FALLBACK_PATH = "/index.php"
