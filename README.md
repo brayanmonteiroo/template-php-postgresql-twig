@@ -30,6 +30,12 @@ docker compose exec app php database/seed_admin.php
 
 Usuário inicial: `admin@example.com` / `admin123`
 
+Se o projeto já estava instalado antes de incluir as telas de Papéis e Permissões, rode novamente o seed para criar as permissões `role.*` e `permission.*` e atribuí-las ao admin:
+
+```bash
+docker compose exec -T postgres psql -U postgres -d template_admin < database/seeds/001_roles_permissions_admin.sql
+```
+
 ## Acesso
 
 http://localhost:8080
@@ -40,7 +46,7 @@ http://localhost:8080
 - `public/` – ponto de entrada (`index.php`) e assets
 - `src/Controllers/` – controllers
 - `src/Models/` – acesso a dados
-- `src/Services/` – regras de negócio (Auth, Permission, User)
+- `src/Services/` – regras de negócio (Auth, Permission, User, Role)
 - `src/Middleware/` – auth e permissão
 - `src/Core/` – dispatcher (FastRoute + middlewares)
 - `config/` – app e database
@@ -60,9 +66,13 @@ http://localhost:8080
 - POST `/login` – autenticar
 - POST `/logout` – sair
 - GET `/`, `/dashboard` – dashboard (autenticado)
-- GET/POST `/users` – listar/criar (permissão `user.view` / `user.create`)
+- GET `/profile`, POST `/profile` – editar próprio perfil (nome, email, senha)
+- GET/POST `/users` – listar (com paginação, busca e ordenação) / criar (permissão `user.view` / `user.create`)
 - GET `/users/{id}/edit`, POST `/users/{id}` – editar (`user.edit`)
-- POST `/users/{id}/delete` – excluir (`user.delete`)
+- POST `/users/{id}/delete` – excluir (`user.delete`); não é possível excluir a si mesmo nem o último admin
+- GET/POST `/roles` – listar/criar papéis (`role.view` / `role.create`)
+- GET `/roles/{id}/edit`, POST `/roles/{id}`, POST `/roles/{id}/delete` – editar/excluir papéis (`role.edit` / `role.delete`)
+- GET `/permissions`, POST `/permissions` – visualizar e gerenciar permissões por papel (`permission.view` / `permission.manage`)
 
 ## Front-end (AdminLTE 4)
 

@@ -1,0 +1,49 @@
+{% extends "layout.twig" %}
+{% block title %}Permissões{% endblock %}
+{% block page_title %}Gerenciar permissões{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard">Painel</a></li>
+<li class="breadcrumb-item active" aria-current="page">Permissões</li>
+{% endblock %}
+{% block content %}
+<p class="text-muted">Marque as permissões que cada papel deve ter. Depois clique em Salvar.</p>
+<form method="post" action="/permissions">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="card">
+        <div class="card-body table-responsive p-0">
+            <table class="table table-bordered table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Permissão</th>
+                        {% for r in roles %}
+                        <th class="text-center" style="min-width: 100px;">{{ r.name }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for perm in permission_list %}
+                    <tr>
+                        <td>
+                            <strong>{{ perm.name }}</strong>
+                            <br><code>{{ perm.slug }}</code>
+                        </td>
+                        {% for r in roles %}
+                        <td class="text-center align-middle">
+                            <input type="checkbox" name="permission_ids[{{ r.id }}][]" value="{{ perm.id }}"
+                                {% if perm.id in matrix[r.id] %}checked{% endif %}>
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="{{ roles|length + 1 }}">Nenhuma permissão cadastrada.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary">Salvar alterações</button>
+            <a href="/roles" class="btn btn-secondary">Ir para Papéis</a>
+        </div>
+    </div>
+</form>
+{% endblock %}

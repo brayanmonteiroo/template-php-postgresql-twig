@@ -39,9 +39,11 @@ $twig = new \Twig\Environment($loader, [
 
 $userModel = new App\Models\User($pdo);
 $roleModel = new App\Models\Role($pdo);
+$permissionModel = new App\Models\Permission($pdo);
 $authService = new App\Services\AuthService($userModel);
 $permissionService = new App\Services\PermissionService($userModel, $authService);
 $userService = new App\Services\UserService($userModel, $roleModel);
+$roleService = new App\Services\RoleService($roleModel, $permissionModel);
 
 if (!isset($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -50,6 +52,12 @@ if (!isset($_SESSION['csrf_token'])) {
 $twig->addGlobal('user', $authService->user() ?? []);
 $twig->addGlobal('permissions', $permissionService->getUserPermissions());
 $twig->addGlobal('csrf_token', $_SESSION['csrf_token'] ?? '');
+$twig->addGlobal('flash_messages', flash_get());
+
+$twig->addFunction(new \Twig\TwigFunction('build_query', function (array $params): string {
+    $params = array_filter($params, fn ($v) => $v !== '' && $v !== null);
+    return http_build_query($params);
+}));
 
 $container = [
     'config' => $config,
@@ -60,6 +68,8 @@ $container = [
     'permissionService' => $permissionService,
     'userService' => $userService,
     'roleModel' => $roleModel,
+    'permissionModel' => $permissionModel,
+    'roleService' => $roleService,
     'csrf_token' => $_SESSION['csrf_token'],
     'middlewares' => [
         'auth' => fn (array $c) => \App\Middleware\AuthMiddleware::run($c),

@@ -1,19 +1,37 @@
 {% extends "layout.twig" %}
 {% block title %}Usuários{% endblock %}
 {% block page_title %}Usuários{% endblock %}
+{% block breadcrumb_current %}Usuários{% endblock %}
 {% block content %}
 {% if 'user.create' in permissions %}
 <p><a href="/users/create" class="btn btn-primary">Novo usuário</a></p>
 {% endif %}
+<form method="get" action="/users" class="card card-outline card-primary mb-3">
+    <div class="card-body row g-2">
+        <div class="col-auto">
+            <input type="text" name="search" class="form-control" placeholder="Buscar por nome ou email" value="{{ search }}">
+        </div>
+        <div class="col-auto">
+            <select name="status" class="form-select">
+                <option value="">Todos os status</option>
+                <option value="active" {{ status == 'active' ? 'selected' : '' }}>Ativo</option>
+                <option value="inactive" {{ status == 'inactive' ? 'selected' : '' }}>Inativo</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+        </div>
+    </div>
+</form>
 <div class="card">
     <div class="card-body table-responsive p-0">
         <table class="table table-hover">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Nome</th>
-                    <th>Email</th>
-                    <th>Status</th>
+                    <th><a href="?{{ build_query({page: 1, search: search, status: status, sort: 'id', order: (sort == 'id' and order == 'asc') ? 'desc' : 'asc'}) }}">ID</a></th>
+                    <th><a href="?{{ build_query({page: 1, search: search, status: status, sort: 'name', order: (sort == 'name' and order == 'asc') ? 'desc' : 'asc'}) }}">Nome</a></th>
+                    <th><a href="?{{ build_query({page: 1, search: search, status: status, sort: 'email', order: (sort == 'email' and order == 'asc') ? 'desc' : 'asc'}) }}">Email</a></th>
+                    <th><a href="?{{ build_query({page: 1, search: search, status: status, sort: 'status', order: (sort == 'status' and order == 'asc') ? 'desc' : 'asc'}) }}">Status</a></th>
                     {% if 'user.edit' in permissions or 'user.delete' in permissions %}
                     <th>Ações</th>
                     {% endif %}
@@ -25,7 +43,7 @@
                     <td>{{ u.id }}</td>
                     <td>{{ u.name }}</td>
                     <td>{{ u.email }}</td>
-                    <td>{{ u.status }}</td>
+                    <td>{{ u.status == 'active' ? 'Ativo' : (u.status == 'inactive' ? 'Inativo' : u.status) }}</td>
                     {% if 'user.edit' in permissions or 'user.delete' in permissions %}
                     <td>
                         {% if 'user.edit' in permissions %}
@@ -46,5 +64,27 @@
             </tbody>
         </table>
     </div>
+    {% if pages > 1 or total > 0 %}
+    <div class="card-footer d-flex justify-content-between align-items-center">
+        <span class="text-muted">Total: {{ total }} usuário(s)</span>
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                {% if current_page > 1 %}
+                <li class="page-item"><a class="page-link" href="?{{ build_query({page: current_page - 1, search: search, status: status, sort: sort, order: order}) }}">Anterior</a></li>
+                {% endif %}
+                {% for p in 1..pages %}
+                    {% if p == current_page %}
+                <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+                    {% else %}
+                <li class="page-item"><a class="page-link" href="?{{ build_query({page: p, search: search, status: status, sort: sort, order: order}) }}">{{ p }}</a></li>
+                    {% endif %}
+                {% endfor %}
+                {% if current_page < pages %}
+                <li class="page-item"><a class="page-link" href="?{{ build_query({page: current_page + 1, search: search, status: status, sort: sort, order: order}) }}">Próxima</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

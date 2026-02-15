@@ -20,9 +20,15 @@ class UserController
 
     public function index(): void
     {
-        $users = $this->userService()->listUsers();
+        $page = max(1, (int) ($_GET['page'] ?? 1));
+        $perPage = max(1, min(100, (int) ($_GET['per_page'] ?? 15)));
+        $search = trim($_GET['search'] ?? '');
+        $status = trim($_GET['status'] ?? '');
+        $sort = trim($_GET['sort'] ?? 'name');
+        $order = strtolower(trim($_GET['order'] ?? 'asc')) === 'desc' ? 'desc' : 'asc';
+        $data = $this->userService()->listUsersPaginated($page, $perPage, $search, $status, $sort, $order);
         $twig = $this->container['twig'];
-        echo $twig->render('users/index.twig', ['users' => $users]);
+        echo $twig->render('users/index.twig', $data);
     }
 
     public function create(): void
@@ -50,6 +56,7 @@ class UserController
         ];
         $result = $this->userService()->createUser($data);
         if ($result['success']) {
+            flash_set('success', 'Usuário criado com sucesso.');
             redirect('/users');
             return;
         }
@@ -106,6 +113,7 @@ class UserController
         ];
         $result = $this->userService()->updateUser($id, $data);
         if ($result['success']) {
+            flash_set('success', 'Usuário atualizado com sucesso.');
             redirect('/users');
             return;
         }
@@ -127,7 +135,18 @@ class UserController
         if (!validate_csrf()) {
             return;
         }
-        $this->userService()->deleteUser($id);
+        $authUser = $this->container['authService']->user();
+        if ($authUser && (int) $authUser['id'] === (int) $id) {
+            flash_set('error', 'Você não pode excluir sua própria conta.');
+            redirect('/users');
+            return;
+        }
+        $result = $this->userService()->deleteUser($id);
+        if ($result) {
+            flash_set('success', 'Usuário excluído com sucesso.');
+        } else {
+            flash_set('error', 'Não é possível excluir o último administrador.');
+        }
         redirect('/users');
     }
 }

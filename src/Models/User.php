@@ -48,6 +48,50 @@ class User
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function listPaginated(int $offset, int $limit, string $search = '', string $status = '', string $sort = 'name', string $order = 'asc'): array
+    {
+        $allowedSort = ['id', 'name', 'email', 'status', 'created_at'];
+        if (!in_array($sort, $allowedSort, true)) {
+            $sort = 'name';
+        }
+        $order = strtolower($order) === 'desc' ? 'DESC' : 'ASC';
+        $conditions = [];
+        $params = [];
+        if ($search !== '') {
+            $conditions[] = '(name ILIKE ? OR email ILIKE ?)';
+            $params[] = '%' . $search . '%';
+            $params[] = '%' . $search . '%';
+        }
+        if ($status !== '' && in_array($status, ['active', 'inactive'], true)) {
+            $conditions[] = 'status = ?';
+            $params[] = $status;
+        }
+        $where = $conditions === [] ? '' : ' WHERE ' . implode(' AND ', $conditions);
+        $sql = 'SELECT id, name, email, status, created_at FROM users' . $where . ' ORDER BY ' . $sort . ' ' . $order . ' LIMIT ' . (int) $limit . ' OFFSET ' . (int) $offset;
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function countAll(string $search = '', string $status = ''): int
+    {
+        $conditions = [];
+        $params = [];
+        if ($search !== '') {
+            $conditions[] = '(name ILIKE ? OR email ILIKE ?)';
+            $params[] = '%' . $search . '%';
+            $params[] = '%' . $search . '%';
+        }
+        if ($status !== '' && in_array($status, ['active', 'inactive'], true)) {
+            $conditions[] = 'status = ?';
+            $params[] = $status;
+        }
+        $where = $conditions === [] ? '' : ' WHERE ' . implode(' AND ', $conditions);
+        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM users' . $where);
+        $stmt->execute($params);
+        return (int) $stmt->fetchColumn();
+    }
+
     public function create(array $data): int
     {
         $stmt = $this->pdo->prepare('INSERT INTO users (name, email, password_hash, status) VALUES (?, ?, ?, ?) RETURNING id');
@@ -116,5 +160,12 @@ class User
         foreach ($roleIds as $roleId) {
             $stmt->execute([$userId, $roleId]);
         }
+    }
+
+    public function countUsersWithRoleId(int $roleId): int
+    {
+        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM user_role WHERE role_id = ?');
+        $stmt->execute([$roleId]);
+        return (int) $stmt->fetchColumn();
     }
 }

@@ -1,0 +1,49 @@
+{% extends "layout.twig" %}
+{% block title %}Papéis{% endblock %}
+{% block page_title %}Papéis{% endblock %}
+{% block breadcrumb_current %}Papéis{% endblock %}
+{% block content %}
+{% if 'role.create' in permissions %}
+<p><a href="/roles/create" class="btn btn-primary">Novo papel</a></p>
+{% endif %}
+<div class="card">
+    <div class="card-body table-responsive p-0">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Slug</th>
+                    {% if 'role.edit' in permissions or 'role.delete' in permissions %}
+                    <th>Ações</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in roles %}
+                <tr>
+                    <td>{{ r.id }}</td>
+                    <td>{{ r.name }}</td>
+                    <td><code>{{ r.slug }}</code></td>
+                    {% if 'role.edit' in permissions or 'role.delete' in permissions %}
+                    <td>
+                        {% if 'role.edit' in permissions %}
+                        <a href="/roles/{{ r.id }}/edit" class="btn btn-sm btn-secondary">Editar</a>
+                        {% endif %}
+                        {% if 'role.delete' in permissions and r.slug != 'admin' %}
+                        <form action="/roles/{{ r.id }}/delete" method="post" class="d-inline" onsubmit="return confirm('Excluir este papel?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <button type="submit" class="btn btn-sm btn-danger">Excluir</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                </tr>
+                {% else %}
+                <tr><td colspan="4">Nenhum papel.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

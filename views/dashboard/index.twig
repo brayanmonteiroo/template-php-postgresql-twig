@@ -1,6 +1,9 @@
 {% extends "layout.twig" %}
-{% block title %}Dashboard{% endblock %}
-{% block page_title %}Dashboard{% endblock %}
+{% block title %}Painel{% endblock %}
+{% block page_title %}Painel{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item active" aria-current="page">Painel</li>
+{% endblock %}
 {% block content %}
 <div class="row">
     <div class="col-12">
@@ -10,5 +13,49 @@
             </div>
         </div>
     </div>
+</div>
+<div class="row mt-3">
+    {% if 'user.view' in permissions %}
+    <div class="col-lg-3 col-6">
+        <div class="small-box text-bg-info text-dark">
+            <div class="inner">
+                <h3>{{ total_users }}</h3>
+                <p>Usuários</p>
+            </div>
+            <svg class="small-box-icon" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M4.5 6.375a4.125 4.125 0 118.25 0 4.125 4.125 0 01-8.25 0zM14.25 8.625a3.375 3.375 0 116.75 0 3.375 3.375 0 01-6.75 0zM1.5 19.125a7.125 7.125 0 0114.25 0v.003l-.001.119a.75.75 0 01-.363.63 13.067 13.067 0 01-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 01-.364-.63l-.001-.122zM17.25 19.125a7.125 7.125 0 0014.25 0v.003l-.001.119a.75.75 0 01-.363.63 13.067 13.067 0 01-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 01-.364-.63l-.001-.122z"/>
+            </svg>
+            <a href="/users" class="small-box-footer link-dark link-underline-opacity-0 link-underline-opacity-50-hover">Ver lista <i class="bi bi-link-45deg"></i></a>
+        </div>
+    </div>
+    {% endif %}
+    {% if 'role.view' in permissions %}
+    <div class="col-lg-3 col-6">
+        <div class="small-box text-bg-success">
+            <div class="inner">
+                <h3>{{ total_roles }}</h3>
+                <p>Papéis</p>
+            </div>
+            <svg class="small-box-icon" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M4.5 6.375a4.125 4.125 0 118.25 0 4.125 4.125 0 01-8.25 0zM14.25 8.625a3.375 3.375 0 116.75 0 3.375 3.375 0 01-6.75 0zM1.5 19.125a7.125 7.125 0 0114.25 0v.003l-.001.119a.75.75 0 01-.363.63 13.067 13.067 0 01-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 01-.364-.63l-.001-.122z"/>
+            </svg>
+            <a href="/roles" class="small-box-footer link-light link-underline-opacity-0 link-underline-opacity-50-hover">Ver lista <i class="bi bi-link-45deg"></i></a>
+        </div>
+    </div>
+    {% endif %}
+    {% if 'permission.view' in permissions %}
+    <div class="col-lg-3 col-6">
+        <div class="small-box text-bg-warning text-dark">
+            <div class="inner">
+                <h3>{{ total_permissions }}</h3>
+                <p>Permissões</p>
+            </div>
+            <svg class="small-box-icon" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M5.166 2.621a.75.75 0 01.557-.28h12.552a.75.75 0 01.558.28c.348.435.557 1.011.557 1.629v12.75a.75.75 0 01-.557.28H5.723a.75.75 0 01-.557-.28A2.25 2.25 0 014.75 17.25V4.25c0-.618.209-1.194.416-1.629zM5.723 4.121a.375.375 0 00-.279.125 1.125 1.125 0 01-.164.004H18.75V17.25c0 .207-.084.375-.166.375H5.723a.375.375 0 01-.279-.125.375.375 0 01-.084-.004V4.121z"/>
+            </svg>
+            <a href="/permissions" class="small-box-footer link-dark link-underline-opacity-0 link-underline-opacity-50-hover">Abrir <i class="bi bi-link-45deg"></i></a>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

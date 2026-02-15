@@ -1,13 +1,18 @@
 {% extends "layout.twig" %}
 {% block title %}Usuário {{ user.name }}{% endblock %}
 {% block page_title %}Usuário {{ user.name }}{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="/dashboard">Painel</a></li>
+<li class="breadcrumb-item"><a href="/users">Usuários</a></li>
+<li class="breadcrumb-item active" aria-current="page">{{ user.name }}</li>
+{% endblock %}
 {% block content %}
 <div class="card">
     <div class="card-body">
         <p><strong>ID:</strong> {{ user.id }}</p>
         <p><strong>Nome:</strong> {{ user.name }}</p>
         <p><strong>Email:</strong> {{ user.email }}</p>
-        <p><strong>Status:</strong> {{ user.status }}</p>
+        <p><strong>Status:</strong> {{ user.status == 'active' ? 'Ativo' : (user.status == 'inactive' ? 'Inativo' : user.status) }}</p>
         {% if 'user.edit' in permissions %}
         <a href="/users/{{ user.id }}/edit" class="btn btn-primary">Editar</a>
         {% endif %}

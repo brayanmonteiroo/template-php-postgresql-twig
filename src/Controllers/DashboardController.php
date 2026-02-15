@@ -13,7 +13,14 @@ class DashboardController
 
     public function index(): void
     {
+        $userModel = $this->container['userModel'];
+        $roleModel = $this->container['roleModel'];
+        $permissionModel = $this->container['permissionModel'];
         $twig = $this->container['twig'];
-        echo $twig->render('dashboard/index.twig');
+        echo $twig->render('dashboard/index.twig', [
+            'total_users' => $userModel->countAll('', ''),
+            'total_roles' => count($roleModel->listAll()),
+            'total_permissions' => count($permissionModel->listAll()),
+        ]);
     }
 }

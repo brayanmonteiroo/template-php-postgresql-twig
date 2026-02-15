@@ -11,10 +11,16 @@ INSERT INTO permissions (name, slug) VALUES
     ('Criar usuários', 'user.create'),
     ('Editar usuários', 'user.edit'),
     ('Excluir usuários', 'user.delete'),
-    ('Visualizar dashboard', 'dashboard.view')
+    ('Visualizar dashboard', 'dashboard.view'),
+    ('Visualizar papéis', 'role.view'),
+    ('Criar papéis', 'role.create'),
+    ('Editar papéis', 'role.edit'),
+    ('Excluir papéis', 'role.delete'),
+    ('Visualizar permissões', 'permission.view'),
+    ('Gerenciar permissões', 'permission.manage')
 ON CONFLICT (slug) DO NOTHING;
 
--- Admin role: all permissions
+-- Admin role: all permissions (incl. role.* and permission.*)
 INSERT INTO role_permission (role_id, permission_id)
 SELECT r.id, p.id FROM roles r, permissions p WHERE r.slug = 'admin'
 ON CONFLICT DO NOTHING;

@@ -20,6 +20,27 @@ class UserService
         return $this->userModel->listAll();
     }
 
+    public function listUsersPaginated(int $page = 1, int $perPage = 15, string $search = '', string $status = '', string $sort = 'name', string $order = 'asc'): array
+    {
+        $page = max(1, $page);
+        $perPage = max(1, min(100, $perPage));
+        $offset = ($page - 1) * $perPage;
+        $users = $this->userModel->listPaginated($offset, $perPage, $search, $status, $sort, $order);
+        $total = $this->userModel->countAll($search, $status);
+        $pages = $total > 0 ? (int) ceil($total / $perPage) : 1;
+        return [
+            'users' => $users,
+            'total' => $total,
+            'pages' => $pages,
+            'current_page' => $page,
+            'per_page' => $perPage,
+            'search' => $search,
+            'status' => $status,
+            'sort' => $sort,
+            'order' => $order,
+        ];
+    }
+
     public function getUserById(int $id): ?array
     {
         return $this->userModel->findById($id);
@@ -81,6 +102,20 @@ class UserService
 
     public function deleteUser(int $id): bool
     {
+        $adminRole = $this->roleModel->findBySlug('admin');
+        if ($adminRole !== null) {
+            $userRoles = $this->userModel->getRolesByUserId($id);
+            $hasAdmin = false;
+            foreach ($userRoles as $r) {
+                if ($r['slug'] === 'admin') {
+                    $hasAdmin = true;
+                    break;
+                }
+            }
+            if ($hasAdmin && $this->userModel->countUsersWithRoleId((int) $adminRole['id']) <= 1) {
+                return false;
+            }
+        }
         return $this->userModel->delete($id);
     }
 

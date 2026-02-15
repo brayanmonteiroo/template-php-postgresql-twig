@@ -1,0 +1,44 @@
+<aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
+    <div class="sidebar-brand">
+        <a href="/dashboard" class="brand-link">
+            <img src="/assets/adminlte/img/brayan-logo.png" alt="Logo" class="brand-image opacity-75 shadow">
+            <span class="brand-text fw-light">Template Admin</span>
+        </a>
+    </div>
+    <div class="sidebar-wrapper">
+        <nav class="mt-2">
+            <ul class="nav sidebar-menu flex-column" role="navigation" id="sidebar-nav">
+                <li class="nav-item">
+                    <a href="/dashboard" class="nav-link">
+                        <i class="nav-icon bi bi-speedometer"></i>
+                        <p>Painel</p>
+                    </a>
+                </li>
+                {% if 'user.view' in permissions or 'user.create' in permissions %}
+                <li class="nav-item">
+                    <a href="/users" class="nav-link">
+                        <i class="nav-icon bi bi-people"></i>
+                        <p>Usuários</p>
+                    </a>
+                </li>
+                {% endif %}
+                {% if 'role.view' in permissions or 'role.create' in permissions %}
+                <li class="nav-item">
+                    <a href="/roles" class="nav-link">
+                        <i class="nav-icon bi bi-person-badge"></i>
+                        <p>Papéis</p>
+                    </a>
+                </li>
+                {% endif %}
+                {% if 'permission.view' in permissions or 'permission.manage' in permissions %}
+                <li class="nav-item">
+                    <a href="/permissions" class="nav-link">
+                        <i class="nav-icon bi bi-shield-lock"></i>
+                        <p>Permissões</p>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</aside>

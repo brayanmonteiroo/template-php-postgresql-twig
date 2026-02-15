@@ -22,3 +22,15 @@ function validate_csrf(): bool
     }
     return true;
 }
+
+function flash_set(string $type, string $message): void
+{
+    $_SESSION['_flash'][$type] = $message;
+}
+
+function flash_get(): array
+{
+    $messages = $_SESSION['_flash'] ?? [];
+    unset($_SESSION['_flash']);
+    return $messages;
+}
