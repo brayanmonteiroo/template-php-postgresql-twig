@@ -1,0 +1,50 @@
+{% extends "layout.twig" %}
+{% block title %}Usuários{% endblock %}
+{% block page_title %}Usuários{% endblock %}
+{% block content %}
+{% if 'user.create' in permissions %}
+<p><a href="/users/create" class="btn btn-primary">Novo usuário</a></p>
+{% endif %}
+<div class="card">
+    <div class="card-body table-responsive p-0">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    {% if 'user.edit' in permissions or 'user.delete' in permissions %}
+                    <th>Ações</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td>{{ u.id }}</td>
+                    <td>{{ u.name }}</td>
+                    <td>{{ u.email }}</td>
+                    <td>{{ u.status }}</td>
+                    {% if 'user.edit' in permissions or 'user.delete' in permissions %}
+                    <td>
+                        {% if 'user.edit' in permissions %}
+                        <a href="/users/{{ u.id }}/edit" class="btn btn-sm btn-secondary">Editar</a>
+                        {% endif %}
+                        {% if 'user.delete' in permissions %}
+                        <form action="/users/{{ u.id }}/delete" method="post" class="d-inline" onsubmit="return confirm('Excluir este usuário?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <button type="submit" class="btn btn-sm btn-danger">Excluir</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                </tr>
+                {% else %}
+                <tr><td colspan="5">Nenhum usuário.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

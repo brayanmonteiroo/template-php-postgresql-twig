@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Template Admin</title>
+    <link rel="stylesheet" href="/assets/adminlte/lib/fonts/source-sans-3/index.css">
+    <link rel="stylesheet" href="/assets/adminlte/lib/bootstrap-icons/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/assets/adminlte/css/adminlte.min.css">
+</head>
+<body class="login-page bg-body-secondary">
+<div class="login-box">
+    <div class="login-logo">
+        <a href="/login"><b>Template</b> Admin</a>
+    </div>
+    <div class="card">
+        <div class="card-body login-card-body">
+            <p class="login-box-msg">Entre com suas credenciais</p>
+            {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
+            <form method="post" action="/login">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <div class="input-group mb-3">
+                    <input type="email" class="form-control" name="email" placeholder="Email" value="{{ email|default('') }}" required autofocus>
+                    <div class="input-group-text"><span class="bi bi-envelope"></span></div>
+                </div>
+                <div class="input-group mb-3">
+                    <input type="password" class="form-control" name="password" placeholder="Senha" required>
+                    <div class="input-group-text"><span class="bi bi-lock-fill"></span></div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Entrar</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script src="/assets/adminlte/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/adminlte/js/adminlte.min.js"></script>
+</body>
+</html>

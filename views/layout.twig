@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin{% endblock %} | Template</title>
+    <link rel="stylesheet" href="/assets/adminlte/lib/fonts/source-sans-3/index.css">
+    <link rel="stylesheet" href="/assets/adminlte/lib/overlayscrollbars/overlayscrollbars.min.css">
+    <link rel="stylesheet" href="/assets/adminlte/lib/bootstrap-icons/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/assets/adminlte/css/adminlte.min.css">
+</head>
+<body class="layout-fixed sidebar-expand-lg sidebar-mini bg-body-tertiary">
+<div class="app-wrapper">
+    <nav class="app-header navbar navbar-expand bg-body">
+        <div class="container-fluid">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button"><i class="bi bi-list"></i></a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown">
+                    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                        <span class="d-none d-md-inline">{{ user.name|default('') }}</span>
+                        <i class="bi bi-person-circle ms-1"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
+                        <li class="user-footer">
+                            <a href="#" class="btn btn-default btn-flat">Perfil</a>
+                            <a href="#" class="btn btn-default btn-flat float-end" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Sair</a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+            <form id="logout-form" action="/logout" method="post" style="display: none;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            </form>
+        </div>
+    </nav>
+    <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
+        <div class="sidebar-brand">
+            <a href="/dashboard" class="brand-link">
+                <span class="brand-text fw-light">Template Admin</span>
+            </a>
+        </div>
+        <div class="sidebar-wrapper">
+            <nav class="mt-2">
+                <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="navigation" data-accordion="false">
+                    <li class="nav-item">
+                        <a href="/dashboard" class="nav-link">
+                            <i class="nav-icon bi bi-speedometer"></i>
+                            <p>Dashboard</p>
+                        </a>
+                    </li>
+                    {% if 'user.view' in permissions or 'user.create' in permissions %}
+                    <li class="nav-item">
+                        <a href="/users" class="nav-link">
+                            <i class="nav-icon bi bi-people"></i>
+                            <p>Usuários</p>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </aside>
+    <main class="app-main">
+        <div class="app-content-header">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-sm-6"><h3 class="mb-0">{% block page_title %}{% endblock %}</h3></div>
+                </div>
+            </div>
+        </div>
+        <div class="app-content">
+            <div class="container-fluid">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </main>
+    <footer class="app-footer">
+        <strong>Template Admin</strong> PHP + Twig + PostgreSQL
+    </footer>
+</div>
+<script src="/assets/adminlte/lib/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
+<script src="/assets/adminlte/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/adminlte/js/adminlte.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var sidebarWrapper = document.querySelector('.sidebar-wrapper');
+    if (sidebarWrapper && typeof OverlayScrollbarsGlobal !== 'undefined' && OverlayScrollbarsGlobal.OverlayScrollbars) {
+        OverlayScrollbarsGlobal.OverlayScrollbars(sidebarWrapper, { scrollbars: { theme: 'os-theme-light', autoHide: 'leave', clickScroll: true } });
+    }
+});
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

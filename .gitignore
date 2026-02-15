@@ -1,0 +1,9 @@
+/vendor/
+.env
+/node_modules/
+/storage/logs/*.log
+.phpunit.result.cache
+.phpunit.cache
+.idea/
+*.swp
+*.swo
