@@ -22,7 +22,7 @@
             <form method="post" action="/login">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <div class="input-group mb-3">
-                    <input type="email" class="form-control" name="email" placeholder="Email" value="{{ email|default('') }}" required autofocus>
+                    <input type="email" class="form-control" name="email" placeholder="Email" value="{{ email|default('admin@example.com') }}" required autofocus>
                     <div class="input-group-text"><span class="bi bi-envelope"></span></div>
                 </div>
                 <div class="input-group mb-3">
@@ -37,10 +37,33 @@
                     </div>
                 </div>
             </form>
+            <p class="text-muted small mt-3 mb-0">
+                Credenciais de demonstração:<br>
+                <span class="text-body">Login:</span> <code>admin@example.com</code><br>
+                <span class="text-body">Senha:</span> <span id="demo-password-mask" aria-live="polite">••••••••</span>
+                <button type="button" class="btn btn-link btn-sm p-0 ms-1 align-baseline" id="demo-password-toggle" data-password="admin123">Mostrar</button>
+            </p>
         </div>
     </div>
 </div>
 <script src="/assets/adminlte/js/bootstrap.bundle.min.js"></script>
 <script src="/assets/adminlte/js/adminlte.min.js"></script>
+<script>
+(function () {
+    var btn = document.getElementById('demo-password-toggle');
+    var mask = document.getElementById('demo-password-mask');
+    if (!btn || !mask) return;
+    btn.addEventListener('click', function () {
+        var pwd = btn.getAttribute('data-password');
+        if (btn.textContent === 'Mostrar') {
+            mask.textContent = pwd;
+            btn.textContent = 'Ocultar';
+        } else {
+            mask.textContent = '••••••••';
+            btn.textContent = 'Mostrar';
+        }
+    });
+})();
+</script>
 </body>
 </html>

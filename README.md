@@ -87,6 +87,31 @@ http://localhost:8080
 
 A base do front está em `public/assets/adminlte/` (AdminLTE 4, Bootstrap 5, Bootstrap Icons, OverlayScrollbars, Source Sans 3). Tudo é servido localmente, sem CDN. O sistema é construído em cima dessa pasta; a pasta original do AdminLTE (`AdminLTE-4.0.0-rc4`) pode ser removida após a configuração inicial.
 
+## Deploy na VPS (Coolify)
+
+As migrations são executadas automaticamente no pós-deploy (comando configurado no Coolify). Após o primeiro deploy, é preciso rodar o seed de roles/permissões e o script do usuário admin **uma vez**:
+
+1. **Seed SQL (roles e permissões)** – O arquivo `database/seeds/001_roles_permissions_admin.sql` existe apenas no container da **aplicação** (não no container do PostgreSQL). Na VPS, pelo terminal do **host** (SSH), use o nome completo dos containers (`docker ps --format '{{.Names}}'`) e o nome do banco definido em **DB_NAME** no Coolify (geralmente `postgres`):
+
+   ```bash
+   docker exec <CONTAINER_APP> cat /app/database/seeds/001_roles_permissions_admin.sql | docker exec -i <CONTAINER_POSTGRES> psql -U postgres -d <DB_NAME>
+   ```
+
+   Exemplo (substitua pelos nomes reais que aparecem no `docker ps`):
+
+   ```bash
+   docker exec a7c08owow0h0k830o0c8s874-111111111 cat /app/database/seeds/001_roles_permissions_admin.sql | docker exec -i r0wswgw0ss4okk8oggw0csks psql -U postgres -d postgres
+   ```
+   Os valores acima não são reais, apenas exemplos.
+
+2. **Usuário admin** – No Coolify, abra o **Terminal** da aplicação (conectado ao container da app, onde existe `/app`). Rode:
+
+   ```bash
+   php database/seed_admin.php
+   ```
+
+   Usuário inicial: `admin@example.com` / `admin123`
+
 ---
 
 **Observação:** O arquivo `nginx.template.conf` na raiz do projeto é usado apenas em **hospedagem** (Coolify/Nixpacks, VPS etc.). O Nixpacks o utiliza no deploy para configurar o Nginx com document root em `public` e fallback para o front controller. Em desenvolvimento local, o Nginx usado é o de `docker/nginx/app.conf`.
