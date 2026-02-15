@@ -86,3 +86,7 @@ http://localhost:8080
 ## Front-end (AdminLTE 4)
 
 A base do front está em `public/assets/adminlte/` (AdminLTE 4, Bootstrap 5, Bootstrap Icons, OverlayScrollbars, Source Sans 3). Tudo é servido localmente, sem CDN. O sistema é construído em cima dessa pasta; a pasta original do AdminLTE (`AdminLTE-4.0.0-rc4`) pode ser removida após a configuração inicial.
+
+---
+
+**Observação:** O arquivo `nginx.template.conf` na raiz do projeto é usado apenas em **hospedagem** (Coolify/Nixpacks, VPS etc.). O Nixpacks o utiliza no deploy para configurar o Nginx com document root em `public` e fallback para o front controller. Em desenvolvimento local, o Nginx usado é o de `docker/nginx/app.conf`.
