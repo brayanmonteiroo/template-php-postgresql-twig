@@ -38,7 +38,7 @@ class RoleController
 
     public function store(): void
     {
-        if (!validate_csrf()) {
+        if (!validate_csrf($this->container['twig'] ?? null)) {
             return;
         }
         $data = [
@@ -64,8 +64,7 @@ class RoleController
     {
         $role = $this->roleService()->getRoleById($id);
         if ($role === null) {
-            http_response_code(404);
-            echo '404 Not Found';
+            render_error($this->container['twig'], 404);
             return;
         }
         $role['permission_ids'] = $this->roleService()->getPermissionIdsByRoleId($id);
@@ -79,7 +78,7 @@ class RoleController
 
     public function update(int $id): void
     {
-        if (!validate_csrf()) {
+        if (!validate_csrf($this->container['twig'] ?? null)) {
             return;
         }
         $data = [
@@ -107,7 +106,7 @@ class RoleController
 
     public function destroy(int $id): void
     {
-        if (!validate_csrf()) {
+        if (!validate_csrf($this->container['twig'] ?? null)) {
             return;
         }
         $result = $this->roleService()->deleteRole($id);

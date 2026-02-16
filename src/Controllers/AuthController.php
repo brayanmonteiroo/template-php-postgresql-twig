@@ -35,15 +35,28 @@ class AuthController
         if ($this->authService()->check()) {
             redirect('/dashboard');
         }
-        if (!validate_csrf()) {
+        if (!validate_csrf($this->container['twig'] ?? null)) {
             return;
         }
-        $email = trim($_POST['email'] ?? '');
-        $password = $_POST['password'] ?? '';
+        if (!rate_limit_login_ok()) {
+            $minutes = rate_limit_login_retry_after_minutes();
+            $twig = $this->container['twig'];
+            http_response_code(429);
+            echo $twig->render('auth/login.twig', [
+                'error' => 'Muitas tentativas de login. Tente novamente em ' . $minutes . ' minuto(s).',
+                'email' => (string) input_post('email', ''),
+                'csrf_token' => $this->container['csrf_token'] ?? '',
+            ]);
+            return;
+        }
+        $email = (string) input_post('email', '');
+        $password = (string) input_post('password', '');
         $error = null;
         if ($email === '' || $password === '') {
             $error = 'Email e senha são obrigatórios.';
         } elseif (!$this->authService()->login($email, $password)) {
+            rate_limit_login_record();
+            app_log('warning', 'Login failed', ['email' => $email, 'ip' => $_SERVER['REMOTE_ADDR'] ?? '']);
             $error = 'Credenciais inválidas.';
         }
         if ($error !== null) {
@@ -60,7 +73,7 @@ class AuthController
 
     public function logout(): void
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && !validate_csrf()) {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && !validate_csrf($this->container['twig'] ?? null)) {
             return;
         }
         $this->authService()->logout();

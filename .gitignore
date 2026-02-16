@@ -2,6 +2,7 @@
 .env
 /node_modules/
 /storage/logs/*.log
+/storage/cache/login_attempts.json
 .phpunit.result.cache
 .phpunit.cache
 .idea/

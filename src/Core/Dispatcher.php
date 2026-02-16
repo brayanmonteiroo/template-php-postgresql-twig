@@ -18,12 +18,10 @@ class Dispatcher
 
         switch ($routeInfo[0]) {
             case \FastRoute\Dispatcher::NOT_FOUND:
-                http_response_code(404);
-                echo '404 Not Found';
+                $this->renderError(404);
                 return;
             case \FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
-                http_response_code(405);
-                echo '405 Method Not Allowed';
+                $this->renderError(405);
                 return;
             case \FastRoute\Dispatcher::FOUND:
                 $handler = $routeInfo[1];
@@ -64,11 +62,22 @@ class Dispatcher
         [$controllerName, $methodName] = explode('@', $handler, 2);
         $controllerClass = 'App\\Controllers\\' . $controllerName;
         if (!class_exists($controllerClass) || !method_exists($controllerClass, $methodName)) {
-            http_response_code(500);
-            echo '500 Internal Server Error';
+            $this->renderError(500);
             return;
         }
         $controller = new $controllerClass($this->container);
         $controller->{$methodName}(...array_values($vars));
+    }
+
+    private function renderError(int $code, string $message = ''): void
+    {
+        $twig = $this->container['twig'] ?? null;
+        if ($twig instanceof \Twig\Environment) {
+            render_error($twig, $code, $message);
+        } else {
+            http_response_code($code);
+            $defaults = [403 => '403 Forbidden', 404 => '404 Not Found', 405 => '405 Method Not Allowed', 500 => '500 Internal Server Error'];
+            echo $defaults[$code] ?? (string) $code;
+        }
     }
 }

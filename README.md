@@ -14,7 +14,7 @@ composer install
 docker compose up -d
 ```
 
-O `.env.example` já está configurado para o Docker (DB_HOST=postgres, etc.). A base de front (AdminLTE 4) já está em `public/assets/adminlte/`; não é preciso rodar nenhum script de cópia.
+O `.env.example` já está configurado para o Docker (DB_HOST=postgres, etc.). A base de front (AdminLTE 4) já está em `public/assets/adminlte/`; não é preciso rodar nenhum script de cópia. A variável **APP_KEY** no `.env` está reservada para uso futuro (ex.: assinatura de cookies ou links); pode ficar vazia.
 
 **Antes do primeiro login**, é obrigatório rodar as migrations e o seed (veja seção "Banco de dados" abaixo).
 

@@ -1,4 +1,6 @@
-{% for type, text in flash_messages %}
+{% for type, list in flash_messages %}
+{% set messages = list is iterable ? list : [list] %}
+{% for text in messages %}
 {% set variant = type == 'error' ? 'danger' : type %}
 {% set icon = variant == 'success' ? 'bi-check-circle' : (variant == 'danger' ? 'bi-x-circle' : (variant == 'warning' ? 'bi-exclamation-triangle' : 'bi-info-circle')) %}
 <div class="alert alert-{{ variant }} alert-dismissible fade show mb-3" role="alert">
@@ -6,4 +8,5 @@
     <h5 class="mb-1"><i class="icon bi {{ icon }}"></i> {{ variant == 'danger' ? 'Erro' : (variant == 'success' ? 'Sucesso' : (variant == 'warning' ? 'Atenção' : 'Informação')) }}</h5>
     {{ text }}
 </div>
+{% endfor %}
 {% endfor %}

@@ -29,7 +29,7 @@ class PermissionController
 
     public function update(): void
     {
-        if (!validate_csrf()) {
+        if (!validate_csrf($this->container['twig'] ?? null)) {
             return;
         }
         $permissionIdsByRole = $_POST['permission_ids'] ?? [];

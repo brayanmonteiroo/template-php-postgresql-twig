@@ -20,12 +20,12 @@ class UserController
 
     public function index(): void
     {
-        $page = max(1, (int) ($_GET['page'] ?? 1));
-        $perPage = max(1, min(100, (int) ($_GET['per_page'] ?? 15)));
-        $search = trim($_GET['search'] ?? '');
-        $status = trim($_GET['status'] ?? '');
-        $sort = trim($_GET['sort'] ?? 'name');
-        $order = strtolower(trim($_GET['order'] ?? 'asc')) === 'desc' ? 'desc' : 'asc';
+        $page = max(1, (int) input_get('page', 1));
+        $perPage = max(1, min(100, (int) input_get('per_page', 10)));
+        $search = (string) input_get('search', '');
+        $status = (string) input_get('status', '');
+        $sort = (string) input_get('sort', 'name');
+        $order = strtolower((string) input_get('order', 'asc')) === 'desc' ? 'desc' : 'asc';
         $data = $this->userService()->listUsersPaginated($page, $perPage, $search, $status, $sort, $order);
         $twig = $this->container['twig'];
         echo $twig->render('users/index.twig', $data);
@@ -44,14 +44,14 @@ class UserController
 
     public function store(): void
     {
-        if (!validate_csrf()) {
+        if (!validate_csrf($this->container['twig'] ?? null)) {
             return;
         }
         $data = [
-            'name' => trim($_POST['name'] ?? ''),
-            'email' => trim($_POST['email'] ?? ''),
-            'password' => $_POST['password'] ?? '',
-            'status' => $_POST['status'] ?? 'active',
+            'name' => (string) input_post('name', ''),
+            'email' => (string) input_post('email', ''),
+            'password' => (string) input_post('password', ''),
+            'status' => (string) input_post('status', 'active'),
             'role_ids' => $_POST['role_ids'] ?? [],
         ];
         $result = $this->userService()->createUser($data);
@@ -72,8 +72,7 @@ class UserController
     {
         $user = $this->userService()->getUserById($id);
         if ($user === null) {
-            http_response_code(404);
-            echo '404 Not Found';
+            render_error($this->container['twig'], 404);
             return;
         }
         unset($user['password_hash']);
@@ -85,8 +84,7 @@ class UserController
     {
         $user = $this->userService()->getUserById($id);
         if ($user === null) {
-            http_response_code(404);
-            echo '404 Not Found';
+            render_error($this->container['twig'], 404);
             return;
         }
         unset($user['password_hash']);
@@ -101,14 +99,14 @@ class UserController
 
     public function update(int $id): void
     {
-        if (!validate_csrf()) {
+        if (!validate_csrf($this->container['twig'] ?? null)) {
             return;
         }
         $data = [
-            'name' => trim($_POST['name'] ?? ''),
-            'email' => trim($_POST['email'] ?? ''),
-            'password' => $_POST['password'] ?? '',
-            'status' => $_POST['status'] ?? 'active',
+            'name' => (string) input_post('name', ''),
+            'email' => (string) input_post('email', ''),
+            'password' => (string) input_post('password', ''),
+            'status' => (string) input_post('status', 'active'),
             'role_ids' => $_POST['role_ids'] ?? [],
         ];
         $result = $this->userService()->updateUser($id, $data);
@@ -132,7 +130,7 @@ class UserController
 
     public function destroy(int $id): void
     {
-        if (!validate_csrf()) {
+        if (!validate_csrf($this->container['twig'] ?? null)) {
             return;
         }
         $authUser = $this->container['authService']->user();

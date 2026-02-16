@@ -42,7 +42,7 @@ class ProfileController
 
     public function update(): void
     {
-        if (!validate_csrf()) {
+        if (!validate_csrf($this->container['twig'] ?? null)) {
             return;
         }
         $user = $this->container['authService']->user();

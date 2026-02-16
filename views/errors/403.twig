@@ -1,0 +1,15 @@
+{% extends 'auth/layout.twig' %}
+
+{% block title %}403 - Acesso negado | Template Admin{% endblock %}
+
+{% block content %}
+<div class="login-box">
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <h1 class="display-6 text-muted">403</h1>
+            <p class="mb-0">{{ message|default('Acesso negado.') }}</p>
+            <a href="/dashboard" class="btn btn-primary mt-3">Ir para o painel</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
