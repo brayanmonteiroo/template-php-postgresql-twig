@@ -3,27 +3,39 @@
 namespace App\Core;
 
 use FastRoute\Dispatcher as FastRouteDispatcher;
+use Twig\Environment;
 
 class Dispatcher
 {
+    /**
+     * Construtor do Dispatcher.
+     * @param FastRouteDispatcher $fastRoute FastRouteDispatcher.
+     * @param array $container Container.
+     * @return void
+     */
     public function __construct(
         private FastRouteDispatcher $fastRoute,
         private array $container
     ) {
     }
-
+    /**
+     * Rota a requisição para o controller apropriado.
+     * @param string $method Método da requisição.
+     * @param string $uri URI da requisição.
+     * @return void
+     */
     public function handle(string $method, string $uri): void
     {
         $routeInfo = $this->fastRoute->dispatch($method, $uri);
 
         switch ($routeInfo[0]) {
-            case \FastRoute\Dispatcher::NOT_FOUND:
+            case FastRouteDispatcher::NOT_FOUND:
                 $this->renderError(404);
                 return;
-            case \FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
+            case FastRouteDispatcher::METHOD_NOT_ALLOWED:
                 $this->renderError(405);
                 return;
-            case \FastRoute\Dispatcher::FOUND:
+            case FastRouteDispatcher::FOUND:
                 $handler = $routeInfo[1];
                 $vars = $routeInfo[2];
                 $this->invoke($handler, $vars);
@@ -31,6 +43,12 @@ class Dispatcher
         }
     }
 
+    /**
+     * Invoca o controller apropriado.
+     * @param string $handler Handler da rota.
+     * @param array $vars Variáveis da rota.
+     * @return void
+     */
     private function invoke(string $handler, array $vars): void
     {
         $authRequired = false;
@@ -69,10 +87,16 @@ class Dispatcher
         $controller->{$methodName}(...array_values($vars));
     }
 
+    /**
+     * Renderiza a página de erro.
+     * @param int $code Código do erro.
+     * @param string $message Mensagem do erro.
+     * @return void
+     */
     private function renderError(int $code, string $message = ''): void
     {
         $twig = $this->container['twig'] ?? null;
-        if ($twig instanceof \Twig\Environment) {
+        if ($twig instanceof Environment) {
             render_error($twig, $code, $message);
         } else {
             http_response_code($code);
