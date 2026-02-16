@@ -63,12 +63,6 @@ http://localhost:8080
 - `database/migrations/` – migrations Phinx (PHP); `database/seeds/` – SQL de dados iniciais
 - `tests/` – PHPUnit
 
-## Testes
-
-```bash
-./vendor/bin/phpunit
-```
-
 ## Rotas
 
 - GET `/login` – formulário de login
@@ -113,5 +107,38 @@ As migrations são executadas automaticamente no pós-deploy (comando configurad
    Usuário inicial: `admin@example.com` / `admin123`
 
 ---
+
+## Testes
+
+Os testes usam **PHPUnit** e estão em `tests/Unit` (Services) e `tests/Feature` (Dispatcher/rotas). Não dependem de banco nem de `.env`.
+
+**Rodar todos os testes** (na raiz do projeto, após `composer install`):
+
+```bash
+./vendor/bin/phpunit
+```
+
+**Com Docker** (dentro do container da aplicação):
+
+```bash
+docker compose exec app ./vendor/bin/phpunit
+```
+
+**Rodar só uma suíte:**
+
+```bash
+./vendor/bin/phpunit --testsuite Unit
+./vendor/bin/phpunit --testsuite Feature
+```
+
+**Rodar um arquivo ou classe específica:**
+
+```bash
+./vendor/bin/phpunit tests/Unit/Services/UserServiceTest.php
+./vendor/bin/phpunit tests/Feature/DispatcherTest.php
+```
+
+A configuração está em `phpunit.xml` (bootstrap em `vendor/autoload.php`, suítes Unit e Feature).
+
 
 **Observação:** O arquivo `nginx.template.conf` na raiz do projeto é usado apenas em **hospedagem** (Coolify/Nixpacks, VPS etc.). O Nixpacks o utiliza no deploy para configurar o Nginx com document root em `public` e fallback para o front controller. Em desenvolvimento local, o Nginx usado é o de `docker/nginx/app.conf`.
