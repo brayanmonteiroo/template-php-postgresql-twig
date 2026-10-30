@@ -1,7 +1,7 @@
 /**
- * Precision Console — theme, sidebar collapse, active nav, confirm dialog (Bootstrap 6 ESM).
+ * Precision Console — theme, sidebar, nav, confirm dialog, flash toasts (Bootstrap 6 ESM).
  */
-import { Dialog } from "/assets/bootstrap/bootstrap.bundle.min.js";
+import { Dialog, Toast } from "/assets/bootstrap/bootstrap.bundle.min.js";
 
 const THEME_KEY = "app-theme";
 const SIDEBAR_KEY = "app-sidebar-collapsed";
@@ -148,9 +148,16 @@ function initConfirmDialog() {
   });
 }
 
+function initFlashToasts() {
+  document.querySelectorAll(".toast[data-app-toast]").forEach((el) => {
+    Toast.getOrCreateInstance(el).show();
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
   initSidebarCollapse();
   markActiveNav();
   initConfirmDialog();
+  initFlashToasts();
 });

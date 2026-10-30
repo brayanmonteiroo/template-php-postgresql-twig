@@ -29,10 +29,11 @@ class AuthController
         if ($this->authService()->check()) {
             redirect($this->homePath());
         }
+        $email = (string) ($_SESSION['_auth_email'] ?? '');
+        unset($_SESSION['_auth_email']);
         $twig = $this->container['twig'];
         echo $twig->render('auth/login.twig', [
-            'error' => null,
-            'email' => '',
+            'email' => $email,
             'csrf_token' => $_SESSION['csrf_token'] ?? '',
         ]);
     }
@@ -45,19 +46,15 @@ class AuthController
         if (!validate_csrf($this->container['twig'] ?? null)) {
             return;
         }
-        if (!rate_limit_login_ok()) {
-            $minutes = rate_limit_login_retry_after_minutes();
-            $twig = $this->container['twig'];
-            http_response_code(429);
-            echo $twig->render('auth/login.twig', [
-                'error' => 'Muitas tentativas de login. Tente novamente em ' . $minutes . ' minuto(s).',
-                'email' => (string) input_post('email', ''),
-                'csrf_token' => $_SESSION['csrf_token'] ?? '',
-            ]);
-            return;
-        }
         $email = (string) input_post('email', '');
         $password = (string) input_post('password', '');
+        if (!rate_limit_login_ok()) {
+            $minutes = rate_limit_login_retry_after_minutes();
+            $_SESSION['_auth_email'] = $email;
+            flash_set('error', 'Muitas tentativas de login. Tente novamente em ' . $minutes . ' minuto(s).');
+            redirect('/login');
+            return;
+        }
         $error = null;
         if ($email === '' || $password === '') {
             $error = 'Email e senha são obrigatórios.';
@@ -67,12 +64,9 @@ class AuthController
             $error = 'Credenciais inválidas.';
         }
         if ($error !== null) {
-            $twig = $this->container['twig'];
-            echo $twig->render('auth/login.twig', [
-                'error' => $error,
-                'email' => $email,
-                'csrf_token' => $_SESSION['csrf_token'] ?? '',
-            ]);
+            $_SESSION['_auth_email'] = $email;
+            flash_set('error', $error);
+            redirect('/login');
             return;
         }
         rotate_csrf_token();
@@ -103,14 +97,8 @@ class AuthController
         }
         if (!rate_limit_register_ok()) {
             $minutes = rate_limit_register_retry_after_minutes();
-            $twig = $this->container['twig'];
-            http_response_code(429);
-            echo $twig->render('auth/register.twig', [
-                'errors' => ['_form' => 'Muitas tentativas de registro. Tente novamente em ' . $minutes . ' minuto(s).'],
-                'name' => (string) input_post('name', ''),
-                'email' => (string) input_post('email', ''),
-                'csrf_token' => $_SESSION['csrf_token'] ?? '',
-            ]);
+            flash_set('error', 'Muitas tentativas de registro. Tente novamente em ' . $minutes . ' minuto(s).');
+            redirect('/register');
             return;
         }
 
@@ -122,9 +110,15 @@ class AuthController
         $result = $this->userService()->registerViewer($data);
         if (!$result['success']) {
             rate_limit_register_record();
+            $errors = $result['errors'];
+            if (isset($errors['_form'])) {
+                flash_set('error', (string) $errors['_form']);
+                redirect('/register');
+                return;
+            }
             $twig = $this->container['twig'];
             echo $twig->render('auth/register.twig', [
-                'errors' => $result['errors'],
+                'errors' => $errors,
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'csrf_token' => $_SESSION['csrf_token'] ?? '',

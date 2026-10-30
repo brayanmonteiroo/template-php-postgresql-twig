@@ -145,6 +145,27 @@ a {
   }
 }
 
+/*
+ * Bootstrap 6 .dialog sets display:flex even when closed (for transitions),
+ * which leaves an invisible block in normal flow and stretches the page.
+ * Keep closed dialogs out of layout; Drawer already uses position:fixed.
+ */
+dialog.dialog:not([open]) {
+  display: none !important;
+}
+
+/* Flash toasts: mapear tokens do .theme-* (como .alert) */
+.toast.theme-success,
+.toast.theme-danger,
+.toast.theme-warning,
+.toast.theme-info {
+  --bs-toast-bg: var(--bs-theme-bg-subtle);
+  --bs-toast-border-color: var(--bs-theme-border);
+  --bs-toast-header-bg: var(--bs-theme-bg-subtle);
+  --bs-toast-header-color: var(--bs-theme-fg);
+  color: var(--bs-theme-fg);
+}
+
 /* —— Shell —— */
 .app-shell {
   display: grid;

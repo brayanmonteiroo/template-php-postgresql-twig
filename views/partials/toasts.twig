@@ -1,0 +1,46 @@
+{#
+  Flash messages como Toast Bootstrap 6.
+  Incluído nos layouts (app + auth). Ativado por app.js via data-app-toast.
+
+  Backend: flash_set('success'|'error'|'warning'|'info', 'mensagem')
+#}
+{% if flash_messages is defined and flash_messages %}
+<div
+    class="toast-container position-fixed bottom-0 start-0 end-0 d-flex flex-column align-items-center p-3"
+    style="z-index: var(--bs-z-toast, 1090); width: auto; max-width: none;"
+    aria-live="polite"
+    aria-atomic="true"
+>
+    {% for type, list in flash_messages %}
+    {% set messages = list is iterable ? list : [list] %}
+    {% for text in messages %}
+    {% set variant = type == 'error' ? 'danger' : type %}
+    {% set icon = variant == 'success' ? 'bi-check-circle-fill' : (variant == 'danger' ? 'bi-x-circle-fill' : (variant == 'warning' ? 'bi-exclamation-triangle-fill' : 'bi-info-circle-fill')) %}
+    {% set title = variant == 'danger' ? 'Erro' : (variant == 'success' ? 'Sucesso' : (variant == 'warning' ? 'Atenção' : 'Informação')) %}
+    {% set delay = variant in ['danger', 'warning'] ? 7000 : 4500 %}
+    <div
+        class="toast toast-translucent theme-{{ variant }}"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+        data-app-toast
+        data-bs-autohide="true"
+        data-bs-delay="{{ delay }}"
+    >
+        <div class="d-flex align-items-start gap-2">
+            <div class="toast-body flex-grow-1">
+                <div class="d-flex align-items-start gap-2">
+                    <i class="bi {{ icon }} mt-1" aria-hidden="true"></i>
+                    <div>
+                        <strong class="d-block">{{ title }}</strong>
+                        <span>{{ text }}</span>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn-close me-2 mt-2" data-bs-dismiss="toast" aria-label="Fechar"></button>
+        </div>
+    </div>
+    {% endfor %}
+    {% endfor %}
+</div>
+{% endif %}

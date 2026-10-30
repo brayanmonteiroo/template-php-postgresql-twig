@@ -28,13 +28,6 @@
                 </button>
             </div>
 
-            {% if errors._form is defined %}
-            <div class="alert theme-danger d-flex align-items-start gap-2 mb-3" role="alert">
-                <i class="bi bi-x-circle mt-1" aria-hidden="true"></i>
-                <p class="mb-0">{{ errors._form }}</p>
-            </div>
-            {% endif %}
-
             <form method="post" action="/register" class="vstack gap-3">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <div>
