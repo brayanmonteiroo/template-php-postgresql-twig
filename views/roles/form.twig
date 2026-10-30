@@ -1,35 +1,62 @@
 {% extends "layout.twig" %}
-{% block title %}{{ role ? 'Editar papel' : 'Novo papel' }}{% endblock %}
-{% block page_title %}{{ role ? 'Editar papel' : 'Novo papel' }}{% endblock %}
+{% block title %}{{ role ? 'Editar perfil' : 'Novo perfil' }}{% endblock %}
+{% block page_title %}{{ role ? 'Editar perfil' : 'Novo perfil' }}{% endblock %}
 {% block breadcrumb %}
-<li class="breadcrumb-item"><a href="/dashboard">Painel</a></li>
-<li class="breadcrumb-item"><a href="/roles">Papéis</a></li>
-<li class="breadcrumb-item active" aria-current="page">{{ role ? 'Editar' : 'Novo papel' }}</li>
+<li><a href="/dashboard">Painel</a></li>
+<li aria-hidden="true">/</li>
+<li><a href="/perfis">Perfis</a></li>
+<li aria-hidden="true">/</li>
+<li aria-current="page">{{ role ? 'Editar' : 'Novo' }}</li>
 {% endblock %}
 {% block content %}
-<form method="post" action="{{ role ? '/roles/' ~ role.id : '/roles' }}">
+<form method="post" action="{{ role ? '/perfis/' ~ role.id : '/perfis' }}" class="app-panel app-form vstack gap-4">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-    <div class="form-group">
-        <label for="name">Nome</label>
-        <input type="text" class="form-control {{ errors.name is defined ? 'is-invalid' : '' }}" id="name" name="name" value="{{ role.name|default('') }}" required>
-        {% if errors.name is defined %}<div class="invalid-feedback">{{ errors.name }}</div>{% endif %}
-    </div>
-    <div class="form-group">
-        <label for="slug">Slug</label>
-        <input type="text" class="form-control {{ errors.slug is defined ? 'is-invalid' : '' }}" id="slug" name="slug" value="{{ role.slug|default('') }}" placeholder="ex: editor" required>
-        {% if errors.slug is defined %}<div class="invalid-feedback">{{ errors.slug }}</div>{% endif %}
-    </div>
-    <div class="form-group">
-        <label>Permissões</label>
-        {% for perm in permissions %}
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" name="permission_ids[]" value="{{ perm.id }}" id="perm_{{ perm.id }}"
-                {{ (role.permission_ids is defined and perm.id in role.permission_ids) ? 'checked' : '' }}>
-            <label class="form-check-label" for="perm_{{ perm.id }}">{{ perm.name }} <code>{{ perm.slug }}</code></label>
+
+    <div class="app-form-grid">
+        <div>
+            <label class="form-label" for="name">Nome</label>
+            <input type="text" class="form-control {{ errors.name is defined ? 'is-invalid' : '' }}" id="name" name="name" value="{{ role.name|default('') }}" required>
+            {% if errors.name is defined %}<div class="invalid-feedback">{{ errors.name }}</div>{% endif %}
         </div>
-        {% endfor %}
+        <div>
+            <label class="form-label" for="slug">Slug</label>
+            <input type="text" class="form-control {{ errors.slug is defined ? 'is-invalid' : '' }}" id="slug" name="slug" value="{{ role.slug|default('') }}" placeholder="ex: editor" required>
+            {% if errors.slug is defined %}<div class="invalid-feedback">{{ errors.slug }}</div>{% endif %}
+        </div>
     </div>
-    <button type="submit" class="btn btn-primary">Salvar</button>
-    <a href="/roles" class="btn btn-secondary">Cancelar</a>
+
+    <fieldset class="app-permission-sections">
+        <legend class="form-label fs-6 mb-3">Permissões</legend>
+        {% for group in permission_groups %}
+        <section class="app-permission-section" aria-labelledby="perm-group-{{ group.key }}">
+            <h3 class="app-permission-section__title" id="perm-group-{{ group.key }}">{{ group.label }}</h3>
+            <div class="app-permission-grid">
+                {% for perm in group.items %}
+                <div class="form-field">
+                    <input class="check theme-primary" type="checkbox" name="permission_ids[]" value="{{ perm.id }}" id="perm_{{ perm.id }}"
+                        {{ (role.permission_ids is defined and perm.id in role.permission_ids) ? 'checked' : '' }}>
+                    <div class="form-field-content">
+                        <label for="perm_{{ perm.id }}">{{ perm.name }}</label>
+                        <small class="form-text font-mono">{{ perm.slug }}</small>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% else %}
+        <p class="text-secondary mb-0">Nenhuma permissão cadastrada.</p>
+        {% endfor %}
+    </fieldset>
+
+    <div class="d-flex flex-wrap gap-2">
+        <button type="submit" class="btn-solid theme-primary app-btn-with-icon">
+            <i class="bi bi-check-lg" aria-hidden="true"></i>
+            Salvar
+        </button>
+        <a href="/perfis" class="btn-subtle theme-secondary app-btn-with-icon">
+            <i class="bi bi-x-lg" aria-hidden="true"></i>
+            Cancelar
+        </a>
+    </div>
 </form>
 {% endblock %}

@@ -1,22 +1,36 @@
 {% extends "layout.twig" %}
 {% block title %}Usuário {{ user.name }}{% endblock %}
-{% block page_title %}Usuário {{ user.name }}{% endblock %}
+{% block page_title %}{{ user.name }}{% endblock %}
 {% block breadcrumb %}
-<li class="breadcrumb-item"><a href="/dashboard">Painel</a></li>
-<li class="breadcrumb-item"><a href="/users">Usuários</a></li>
-<li class="breadcrumb-item active" aria-current="page">{{ user.name }}</li>
+<li><a href="/dashboard">Painel</a></li>
+<li aria-hidden="true">/</li>
+<li><a href="/users">Usuários</a></li>
+<li aria-hidden="true">/</li>
+<li aria-current="page">{{ user.name }}</li>
 {% endblock %}
 {% block content %}
-<div class="card">
-    <div class="card-body">
-        <p><strong>ID:</strong> {{ user.id }}</p>
-        <p><strong>Nome:</strong> {{ user.name }}</p>
-        <p><strong>Email:</strong> {{ user.email }}</p>
-        <p><strong>Status:</strong> {{ user.status == 'active' ? 'Ativo' : (user.status == 'inactive' ? 'Inativo' : user.status) }}</p>
+<div class="app-panel" style="max-width: 36rem;">
+    <dl class="row mb-0">
+        <dt class="col-4 text-secondary">ID</dt>
+        <dd class="col-8 font-mono">{{ user.id }}</dd>
+        <dt class="col-4 text-secondary">Nome</dt>
+        <dd class="col-8">{{ user.name }}</dd>
+        <dt class="col-4 text-secondary">E-mail</dt>
+        <dd class="col-8">{{ user.email }}</dd>
+        <dt class="col-4 text-secondary">Status</dt>
+        <dd class="col-8">{{ user.status == 'active' ? 'Ativo' : (user.status == 'inactive' ? 'Inativo' : user.status) }}</dd>
+    </dl>
+    <div class="d-flex flex-wrap gap-2 mt-3">
         {% if 'user.edit' in permissions %}
-        <a href="/users/{{ user.id }}/edit" class="btn btn-primary">Editar</a>
+        <a href="/users/{{ user.id }}/edit" class="btn-solid theme-primary btn-sm app-btn-with-icon">
+            <i class="bi bi-pencil" aria-hidden="true"></i>
+            Editar
+        </a>
         {% endif %}
-        <a href="/users" class="btn btn-secondary">Voltar</a>
+        <a href="/users" class="btn-subtle theme-secondary btn-sm app-btn-with-icon">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            Voltar
+        </a>
     </div>
 </div>
 {% endblock %}

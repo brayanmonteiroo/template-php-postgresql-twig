@@ -10,6 +10,15 @@ services:
       APP_ENV: development
       APP_DEBUG: "1"
       APP_URL: http://localhost:8080
+    # Bind mounts so edits apply without compose watch.
+    volumes:
+      - ./src:/var/www/html/src
+      - ./views:/var/www/html/views
+      - ./public:/var/www/html/public
+      - ./config:/var/www/html/config
+      - ./database:/var/www/html/database
+      - ./routes.php:/var/www/html/routes.php
+      - ./phinx.php:/var/www/html/phinx.php
     develop:
       watch:
         - action: sync

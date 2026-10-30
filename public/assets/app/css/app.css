@@ -1,0 +1,822 @@
+/* Precision Console — app shell on Bootstrap 6 */
+
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/ibm-plex-sans-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../fonts/ibm-plex-sans-500.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../fonts/ibm-plex-sans-600.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../fonts/ibm-plex-sans-700.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/ibm-plex-mono-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../fonts/ibm-plex-mono-500.woff2") format("woff2");
+}
+
+:root,
+[data-bs-theme="light"] {
+  --app-font: "IBM Plex Sans", system-ui, sans-serif;
+  --app-font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --app-sidebar-width: 16.5rem;
+  --app-sidebar-collapsed-width: 4.5rem;
+  --app-header-height: 3.5rem;
+  --app-ink: #0f172a;
+  --app-muted: #64748b;
+  --app-surface: #f1f5f9;
+  --app-panel: #ffffff;
+  --app-line: #e2e8f0;
+  --app-accent: #0f766e;
+  --app-accent-fg: #f0fdfa;
+  --app-sidebar-bg: #0b1220;
+  --app-sidebar-fg: #cbd5e1;
+  --app-sidebar-active: #f0fdfa;
+  --app-login-glow: color-mix(in oklab, var(--app-accent) 28%, transparent);
+  --app-header-rule: color-mix(in oklab, #fff 10%, transparent);
+
+  --bs-primary-base: #0f766e;
+  --bs-primary-bg: #0f766e;
+  --bs-primary-fg: #0f766e;
+  --bs-primary-contrast: #f0fdfa;
+  --bs-primary-bg-subtle: #ccfbf1;
+  --bs-primary-border: #5eead4;
+  --bs-font-sans-serif: var(--app-font);
+  --bs-body-font-family: var(--app-font);
+  --bs-body-color: var(--app-ink);
+  --bs-body-bg: var(--app-surface);
+  --bs-border-color: var(--app-line);
+  --bs-link-color: var(--app-accent);
+}
+
+[data-bs-theme="dark"] {
+  --app-ink: #e2e8f0;
+  --app-muted: #94a3b8;
+  --app-surface: #0b1220;
+  --app-panel: #111827;
+  --app-line: #1e293b;
+  --app-accent: #2dd4bf;
+  --app-accent-fg: #042f2e;
+  --app-sidebar-bg: #060a12;
+  --app-sidebar-fg: #94a3b8;
+  --app-sidebar-active: #f0fdfa;
+  --app-login-glow: color-mix(in oklab, var(--app-accent) 22%, transparent);
+  --app-header-rule: color-mix(in oklab, #fff 10%, transparent);
+
+  --bs-primary-base: #2dd4bf;
+  --bs-primary-bg: #2dd4bf;
+  --bs-primary-fg: #2dd4bf;
+  --bs-primary-contrast: #042f2e;
+  --bs-primary-bg-subtle: #134e4a;
+  --bs-primary-border: #0f766e;
+  --bs-body-color: var(--app-ink);
+  --bs-body-bg: var(--app-surface);
+  --bs-border-color: var(--app-line);
+  --bs-link-color: var(--app-accent);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--app-font);
+  background: var(--app-surface);
+  color: var(--app-ink);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+code,
+.font-mono {
+  font-family: var(--app-font-mono);
+}
+
+a {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--app-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* —— Shell —— */
+.app-shell {
+  display: grid;
+  grid-template-columns: var(--app-sidebar-width) 1fr;
+  grid-template-rows: var(--app-header-height) 1fr auto;
+  grid-template-areas:
+    "sidebar header"
+    "sidebar main"
+    "sidebar footer";
+  min-height: 100vh;
+  transition: grid-template-columns 0.2s ease;
+}
+
+.app-shell.is-sidebar-collapsed,
+html.sidebar-collapsed-pending .app-shell {
+  grid-template-columns: var(--app-sidebar-collapsed-width) 1fr;
+}
+
+.app-sidebar {
+  grid-area: sidebar;
+  background: var(--app-sidebar-bg);
+  color: var(--app-sidebar-fg);
+  border-right: 1px solid color-mix(in oklab, #fff 8%, transparent);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  z-index: 30;
+  overflow: hidden;
+}
+
+/* Same height + shared bottom edge with .app-header */
+.app-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  height: var(--app-header-height);
+  min-height: var(--app-header-height);
+  max-height: var(--app-header-height);
+  padding: 0 1rem;
+  border-bottom: 1px solid var(--app-header-rule);
+  text-decoration: none;
+  color: var(--app-sidebar-active);
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.app-sidebar-brand img {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.4rem;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.app-sidebar-brand span {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.app-sidebar-nav {
+  padding: 0.75rem 0.55rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.app-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.45rem;
+  color: var(--app-sidebar-fg);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.925rem;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.app-nav-link:hover {
+  background: color-mix(in oklab, #fff 6%, transparent);
+  color: var(--app-sidebar-active);
+}
+
+.app-nav-link.is-active {
+  background: color-mix(in oklab, var(--app-accent) 22%, transparent);
+  color: var(--app-sidebar-active);
+}
+
+.app-nav-link i {
+  font-size: 1.15rem;
+  opacity: 0.9;
+  flex-shrink: 0;
+  width: 1.25rem;
+  text-align: center;
+}
+
+.app-nav-link span {
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.app-shell.is-sidebar-collapsed .app-sidebar-brand {
+  justify-content: center;
+  padding: 0;
+}
+
+.app-shell.is-sidebar-collapsed .app-sidebar-brand span,
+.app-shell.is-sidebar-collapsed .app-nav-link span {
+  display: none;
+}
+
+.app-shell.is-sidebar-collapsed .app-nav-link {
+  justify-content: center;
+  padding: 0.65rem;
+}
+
+.app-header {
+  grid-area: header;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  height: var(--app-header-height);
+  min-height: var(--app-header-height);
+  max-height: var(--app-header-height);
+  padding: 0 1.25rem;
+  background: color-mix(in oklab, var(--app-panel) 92%, transparent);
+  border-bottom: 1px solid var(--app-line);
+  backdrop-filter: blur(8px);
+  /* keep rule flush with sidebar brand edge (same box height) */
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  box-sizing: border-box;
+}
+
+/* Ghost icon controls — no gray chip background */
+.app-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--app-muted);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.app-icon-btn:hover,
+.app-icon-btn:focus-visible {
+  background: color-mix(in oklab, var(--app-ink) 8%, transparent);
+  color: var(--app-ink);
+}
+
+.app-icon-btn--accent:hover,
+.app-icon-btn--accent:focus-visible {
+  background: color-mix(in oklab, var(--app-accent) 16%, transparent);
+  color: var(--app-accent);
+}
+
+.app-icon-btn--danger:hover,
+.app-icon-btn--danger:focus-visible {
+  background: color-mix(in oklab, #ef4444 16%, transparent);
+  color: #f87171;
+}
+
+.app-icon-btn i {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.app-btn-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.app-main {
+  grid-area: main;
+  padding: 1.5rem 1.5rem 2rem;
+  min-width: 0;
+}
+
+.app-footer {
+  grid-area: footer;
+  padding: 0.85rem 1.5rem;
+  border-top: 1px solid var(--app-line);
+  color: var(--app-muted);
+  font-size: 0.85rem;
+  background: var(--app-panel);
+}
+
+.app-page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 0.75rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.app-page-head h1 {
+  margin: 0;
+  font-size: 1.45rem;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+}
+
+.app-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.85rem;
+  color: var(--app-muted);
+}
+
+.app-breadcrumb a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.app-breadcrumb a:hover {
+  color: var(--app-accent);
+}
+
+.app-panel {
+  background: var(--app-panel);
+  border: 1px solid var(--app-line);
+  border-radius: 0.65rem;
+  padding: 1.1rem 1.2rem;
+}
+
+.app-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+/* Forms: full content width (use with app-panel) */
+.app-form {
+  width: 100%;
+  max-width: none;
+}
+
+.app-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.25rem;
+}
+
+.app-permission-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 0.75rem 1.25rem;
+}
+
+/* Filter bar (reusable partial) */
+.app-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-filter-bar__fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.app-filter-bar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+/* Mantém o espaço do Limpar para o Filtrar não deslocar */
+.app-filter-clear.invisible {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.app-permission-sections {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.app-permission-section {
+  padding: 1rem 0;
+  border-top: 1px solid var(--app-line);
+}
+
+.app-permission-section:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.app-permission-section__title {
+  margin: 0 0 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--app-muted);
+}
+
+.app-filter-search {
+  max-width: 18rem;
+  width: 100%;
+}
+
+.app-filter-select {
+  max-width: 12rem;
+}
+
+@media (width < 768px) {
+  .app-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .app-filter-search,
+  .app-filter-select {
+    max-width: none;
+  }
+}
+
+.app-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--app-line);
+  border-radius: 0.65rem;
+  background: var(--app-panel);
+}
+
+.app-table-wrap table {
+  margin: 0;
+}
+
+.app-table-wrap thead th {
+  position: sticky;
+  top: 0;
+  background: var(--app-panel);
+  z-index: 1;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--app-muted);
+  font-weight: 600;
+  border-bottom-width: 1px;
+}
+
+.app-table-wrap thead th a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.app-table-wrap thead th a:hover {
+  color: var(--app-accent);
+}
+
+.app-table-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--app-line);
+  background: var(--app-panel);
+}
+
+/* Checkboxes — style via Bootstrap 6 check tokens (empty ≠ checked) */
+.check {
+  --bs-check-size: 1.15rem;
+  --bs-check-border-radius: 0.28rem;
+  --bs-check-bg: var(--app-surface);
+  --bs-check-border-color: color-mix(in oklab, var(--app-muted) 55%, var(--app-line));
+  --bs-check-checked-bg: var(--app-accent);
+  --bs-check-checked-border-color: var(--app-accent);
+  --bs-theme-bg: var(--app-accent);
+  --bs-theme-contrast: var(--app-accent-fg);
+  border-radius: 0.28rem !important;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.check:not(:checked) {
+  background-color: var(--bs-check-bg) !important;
+  border-color: var(--bs-check-border-color) !important;
+}
+
+.check:not(:checked):hover {
+  border-color: color-mix(in oklab, var(--app-accent) 65%, var(--app-muted)) !important;
+  background-color: color-mix(in oklab, var(--app-accent) 10%, var(--app-surface)) !important;
+}
+
+.check:checked {
+  background-color: var(--app-accent) !important;
+  border-color: var(--app-accent) !important;
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--app-accent) 22%, transparent);
+}
+
+[data-bs-theme="dark"] .check {
+  --bs-check-bg: color-mix(in oklab, var(--app-panel) 85%, #000);
+  --bs-check-border-color: color-mix(in oklab, var(--app-muted) 55%, var(--app-line));
+}
+
+[data-bs-theme="dark"] .check:not(:checked) {
+  background-color: var(--bs-check-bg) !important;
+  border: 1.5px solid var(--bs-check-border-color) !important;
+}
+
+.check:focus-visible {
+  outline: 2px solid var(--app-accent);
+  outline-offset: 2px;
+}
+
+.app-stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.app-stat {
+  background: var(--app-panel);
+  border: 1px solid var(--app-line);
+  border-radius: 0.65rem;
+  padding: 1.15rem 1.25rem;
+  position: relative;
+  overflow: hidden;
+  min-height: 7.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-stat__icon {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  font-size: 1.35rem;
+  color: var(--app-muted);
+  opacity: 0.55;
+}
+
+.app-stat__label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--app-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.35rem;
+}
+
+.app-stat__value {
+  font-family: var(--app-font-mono);
+  font-size: 2rem;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+}
+
+.app-stat__hint {
+  margin-top: 0.45rem;
+  font-size: 0.85rem;
+  color: var(--app-muted);
+}
+
+.app-stat__hint a {
+  color: var(--app-accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: var(--app-muted);
+}
+
+/* —— Auth / login —— */
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+}
+
+.auth-visual {
+  position: relative;
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: #e2e8f0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 20%, var(--app-login-glow), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 80% 80%, color-mix(in oklab, #38bdf8 18%, transparent), transparent 50%),
+    #070b14;
+  overflow: hidden;
+}
+
+.auth-visual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(color-mix(in oklab, #fff 5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, #fff 5%, transparent) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
+  pointer-events: none;
+  opacity: 0.35;
+}
+
+.auth-visual__brand,
+.auth-visual__copy {
+  position: relative;
+  z-index: 1;
+}
+
+.auth-visual__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+}
+
+.auth-visual__brand img {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.45rem;
+}
+
+.auth-visual__copy h1 {
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  letter-spacing: -0.04em;
+  font-weight: 650;
+  max-width: 14ch;
+  margin: 0 0 0.75rem;
+}
+
+.auth-visual__copy p {
+  margin: 0;
+  max-width: 32ch;
+  color: #94a3b8;
+  line-height: 1.55;
+}
+
+.auth-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  background: var(--app-panel);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 24rem;
+}
+
+.auth-card h2 {
+  font-size: 1.35rem;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  margin: 0 0 0.35rem;
+}
+
+.auth-card .lead {
+  color: var(--app-muted);
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.auth-demo {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--app-line);
+  font-size: 0.85rem;
+  color: var(--app-muted);
+}
+
+.auth-error-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem 1rem;
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 0%, var(--app-login-glow), transparent 60%),
+    var(--app-surface);
+}
+
+.auth-error-card {
+  text-align: center;
+  max-width: 26rem;
+}
+
+.auth-error-card .code {
+  font-family: var(--app-font-mono);
+  font-size: 3rem;
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  color: var(--app-accent);
+  margin-bottom: 0.5rem;
+}
+
+/* Mobile: sidebar as drawer */
+@media (width < 992px) {
+  .app-shell,
+  .app-shell.is-sidebar-collapsed {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "header"
+      "main"
+      "footer";
+  }
+
+  .app-sidebar--desktop {
+    display: none;
+  }
+
+  .app-sidebar-collapse {
+    display: none !important;
+  }
+
+  .app-stat-row {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-visual {
+    min-height: 12rem;
+    padding: 1.5rem;
+  }
+
+  .auth-visual__copy h1 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (width >= 992px) {
+  .app-sidebar-toggle {
+    display: none !important;
+  }
+}

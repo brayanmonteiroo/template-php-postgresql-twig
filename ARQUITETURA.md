@@ -4,7 +4,7 @@ Este documento descreve a arquitetura do template administrativo PHP + PostgreSQ
 
 ## Visão geral
 
-A aplicação segue um **MVC enxuto** com front controller, roteamento por FastRoute, camada de **Services** para regras de negócio e **Models** para acesso a dados. Autenticação e autorização (RBAC) são feitas por middlewares aplicados às rotas. A view usa Twig e o layout é baseado no AdminLTE 4.
+A aplicação segue um **MVC enxuto** com front controller, roteamento por FastRoute, camada de **Services** para regras de negócio e **Models** para acesso a dados. Autenticação e autorização (RBAC) são feitas por middlewares aplicados às rotas. A view usa Twig com shell **Precision Console** sobre Bootstrap 6.
 
 - **Stack:** PHP 8.5+ (imagem `php:8.5.12-apache`), PostgreSQL 18, Twig 3, FastRoute, Phinx (migrations).
 - **Padrões:** Front Controller, Dependency Injection (container simples), Repository-style nos Models.
@@ -58,7 +58,7 @@ project/
 │   └── seeds/             # SQL e script PHP de dados iniciais
 ├── public/                 # Document root
 │   ├── index.php          # Front controller (único ponto de entrada)
-│   └── assets/            # CSS, JS, imagens (AdminLTE)
+│   └── assets/            # Bootstrap 6, icons, app.css/js, brand
 ├── src/
 │   ├── Core/              # Dispatcher (roteamento + middlewares)
 │   ├── Controllers/       # Controllers (orquestração)
@@ -152,7 +152,7 @@ Padrão próximo a Repository (um “repositório” por entidade principal), se
 ### 7. Views (Twig)
 
 - Todas em `views/`, extensão `.twig`.
-- Layout principal: `layout.twig` (AdminLTE 4), com blocos `title`, `page_title`, `breadcrumb`, `content`.
+- Layout principal: `layout.twig` (sidebar + header Bootstrap 6), blocos `title`, `page_title`, `breadcrumb`, `page_actions`, `content`.
 - Partials: `partials/header.twig`, `sidebar.twig`, `alerts.twig`, `footer.twig`.
 - Variáveis globais (definidas no front controller): `user`, `permissions`, `csrf_token`, `flash_messages`.
 - Função Twig: `build_query` (para montar query strings em links de listagem).
@@ -195,9 +195,9 @@ Um usuário tem uma ou mais roles; cada role tem várias permissions. O Permissi
 
 ## Front-end e assets
 
-- **Layout e componentes:** AdminLTE 4 (Bootstrap 5, Bootstrap Icons, OverlayScrollbars, Source Sans 3). Arquivos em `public/assets/adminlte/`.
-- **Páginas:** Twig que estendem `layout.twig` e preenchem os blocos. Listagens com tabelas, filtros e paginação; formulários com botões de ação.
-- **Comportamento:** Bootstrap e AdminLTE JS; na tela de login, um pequeno script inline para “Credenciais de demonstração” (mostrar/ocultar senha). Sem framework JS pesado; interações simples.
+- **Layout e componentes:** Bootstrap `6.0.0-alpha.1` + shell próprio (`public/assets/app/`), Bootstrap Icons, IBM Plex Sans/Mono, light/dark via `data-bs-theme`.
+- **Páginas:** Twig que estendem `layout.twig` (ou `auth/layout.twig`). Listagens com tabelas, filtros e paginação; formulários com validação visual.
+- **Comportamento:** Bootstrap ESM (`type="module"`) + `app.js` (tema e nav ativa); login com script leve para revelar senha demo.
 
 ---
 

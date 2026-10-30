@@ -30,6 +30,72 @@ class RoleService
         return $this->permissionModel->listAll();
     }
 
+    /**
+     * Permissões agrupadas na ordem da sidebar: Painel → Usuários → Perfis.
+     *
+     * @return list<array{key: string, label: string, items: list<array<string, mixed>>}>
+     */
+    public function getPermissionsGroupedForSelect(): array
+    {
+        $groups = [
+            [
+                'key' => 'painel',
+                'label' => 'Painel',
+                'prefixes' => ['dashboard.'],
+                'items' => [],
+            ],
+            [
+                'key' => 'usuarios',
+                'label' => 'Usuários',
+                'prefixes' => ['user.'],
+                'items' => [],
+            ],
+            [
+                'key' => 'perfis',
+                'label' => 'Perfis',
+                'prefixes' => ['role.', 'permission.'],
+                'items' => [],
+            ],
+        ];
+
+        $actionOrder = ['view' => 1, 'create' => 2, 'edit' => 3, 'delete' => 4, 'manage' => 5];
+
+        foreach ($this->permissionModel->listAll() as $perm) {
+            $slug = (string) ($perm['slug'] ?? '');
+            foreach ($groups as &$group) {
+                foreach ($group['prefixes'] as $prefix) {
+                    if (str_starts_with($slug, $prefix)) {
+                        $group['items'][] = $perm;
+                        continue 3;
+                    }
+                }
+            }
+            unset($group);
+            // Fallback: última seção (Perfis)
+            $groups[array_key_last($groups)]['items'][] = $perm;
+        }
+
+        foreach ($groups as &$group) {
+            usort($group['items'], static function (array $a, array $b) use ($actionOrder): int {
+                $actionA = explode('.', (string) ($a['slug'] ?? ''))[1] ?? '';
+                $actionB = explode('.', (string) ($b['slug'] ?? ''))[1] ?? '';
+                $rankA = $actionOrder[$actionA] ?? 99;
+                $rankB = $actionOrder[$actionB] ?? 99;
+                if ($rankA !== $rankB) {
+                    return $rankA <=> $rankB;
+                }
+                return strcmp((string) ($a['slug'] ?? ''), (string) ($b['slug'] ?? ''));
+            });
+            unset($group['prefixes']);
+        }
+        unset($group);
+
+        return array_values(array_filter(
+            $groups,
+            static fn (array $g): bool => $g['items'] !== []
+        ));
+    }
+
     public function getPermissionIdsByRoleId(int $roleId): array
     {
         return $this->roleModel->getPermissionIdsByRoleId($roleId);
@@ -56,7 +122,7 @@ class RoleService
     {
         $role = $this->roleModel->findById($id);
         if ($role === null) {
-            return ['success' => false, 'errors' => ['Papel não encontrado.']];
+            return ['success' => false, 'errors' => ['Perfil não encontrado.']];
         }
         $errors = $this->validate($data, $id);
         if (!empty($errors)) {

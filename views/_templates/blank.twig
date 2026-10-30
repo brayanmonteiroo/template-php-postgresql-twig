@@ -1,0 +1,29 @@
+{#
+  Modelo de página autenticada (blank).
+  Copie para views/<recurso>/… e preencha os blocks.
+
+  Estrutura obrigatória:
+  - extends layout.twig
+  - title / page_title / breadcrumb*
+  - page_actions (opcional)
+  - content em largura total (app-panel / app-form / app-table-wrap)
+#}
+{% extends "layout.twig" %}
+
+{% block title %}Página em branco{% endblock %}
+{% block page_title %}Página em branco{% endblock %}
+{% block breadcrumb_current %}Em branco{% endblock %}
+
+{% block page_actions %}
+{# Ex.: botão primário à direita do título #}
+{% endblock %}
+
+{% block content %}
+<div class="app-panel app-form">
+    <p class="text-secondary mb-0">
+        Conteúdo em largura total do shell. Use <code class="font-mono">app-panel</code>,
+        <code class="font-mono">app-form</code> ou <code class="font-mono">app-table-wrap</code>
+        — sem <code class="font-mono">max-width</code> inline estreito.
+    </p>
+</div>
+{% endblock %}

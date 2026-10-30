@@ -2,48 +2,56 @@
 {% block title %}Permissões{% endblock %}
 {% block page_title %}Gerenciar permissões{% endblock %}
 {% block breadcrumb %}
-<li class="breadcrumb-item"><a href="/dashboard">Painel</a></li>
-<li class="breadcrumb-item active" aria-current="page">Permissões</li>
+<li><a href="/dashboard">Painel</a></li>
+<li aria-hidden="true">/</li>
+<li aria-current="page">Permissões</li>
 {% endblock %}
 {% block content %}
-<p class="text-muted">Marque as permissões que cada papel deve ter. Depois clique em Salvar.</p>
+<p class="text-secondary mb-3">Marque as permissões de cada papel e salve a matriz RBAC.</p>
 <form method="post" action="/permissions">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-    <div class="card">
-        <div class="card-body table-responsive p-0">
-            <table class="table table-bordered table-hover mb-0">
-                <thead>
-                    <tr>
-                        <th>Permissão</th>
-                        {% for r in roles %}
-                        <th class="text-center" style="min-width: 100px;">{{ r.name }}</th>
-                        {% endfor %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for perm in permission_list %}
-                    <tr>
-                        <td>
-                            <strong>{{ perm.name }}</strong>
-                            <br><code>{{ perm.slug }}</code>
-                        </td>
-                        {% for r in roles %}
-                        <td class="text-center align-middle">
-                            <input type="checkbox" name="permission_ids[{{ r.id }}][]" value="{{ perm.id }}"
-                                {% if perm.id in matrix[r.id] %}checked{% endif %}>
-                        </td>
-                        {% endfor %}
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="{{ roles|length + 1 }}">Nenhuma permissão cadastrada.</td></tr>
+    <div class="app-table-wrap mb-3">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Permissão</th>
+                    {% for r in roles %}
+                    <th class="text-center" style="min-width: 6rem;">{{ r.name }}</th>
                     {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div class="card-footer">
-            <button type="submit" class="btn btn-primary">Salvar alterações</button>
-            <a href="/roles" class="btn btn-secondary">Ir para Papéis</a>
-        </div>
+                </tr>
+            </thead>
+            <tbody>
+                {% for perm in permission_list %}
+                <tr>
+                    <td>
+                        <strong>{{ perm.name }}</strong>
+                        <div class="font-mono small text-secondary">{{ perm.slug }}</div>
+                    </td>
+                    {% for r in roles %}
+                    <td class="text-center align-middle">
+                        <input type="checkbox" class="check theme-primary" name="permission_ids[{{ r.id }}][]" value="{{ perm.id }}"
+                            aria-label="{{ perm.name }} para {{ r.name }}"
+                            {% if perm.id in matrix[r.id] %}checked{% endif %}>
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="{{ roles|length + 1 }}" class="empty-state">Nenhuma permissão cadastrada.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <button type="submit" class="btn-solid theme-primary app-btn-with-icon">
+            <i class="bi bi-check2-square" aria-hidden="true"></i>
+            Salvar alterações
+        </button>
+        <a href="/roles" class="btn-subtle theme-secondary app-btn-with-icon">
+            <i class="bi bi-person-badge" aria-hidden="true"></i>
+            Ir para Papéis
+        </a>
     </div>
 </form>
 {% endblock %}

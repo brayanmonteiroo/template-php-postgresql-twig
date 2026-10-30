@@ -1,36 +1,54 @@
 ---
-description: Templates Twig 3 SSR (layout, autoescape, CSRF)
+description: Templates Twig 3 SSR (layout, autoescape, CSRF, Bootstrap 6)
 globs: views/**/*.twig
 alwaysApply: false
 ---
 
-# Views Twig 3
+# Views Twig 3 + Bootstrap 6
 
-Base: [Twig 3 docs](https://twig.symfony.com/doc/3.x/).
+Base: [Twig 3](https://twig.symfony.com/doc/3.x/), [Bootstrap 6](https://getbootstrap.com/docs/6.0/).
+Skills oficiais Bootstrap: `.agents/skills/bootstrap-*` (symlink em `.cursor/skills/`). Docs: https://getbootstrap.com/docs/6.0/getting-started/ai/
+
+## Modelo de página (obrigatório)
+
+1. Copiar `views/_templates/blank.twig` ou estender `layout.twig`
+2. Preencher `title`, `page_title`, `breadcrumb` / `breadcrumb_current`, `page_actions`, `content`
+3. Conteúdo em **largura total** do main: `app-panel`, `app-form` ou `app-table-wrap`
+4. **Proibido** `max-width` estreito inline em forms (ex.: `36rem`) — o shell já tem padding
 
 ## Estrutura
 
-- Páginas autenticadas estendem `layout.twig` e preenchem blocos (`title`, `content`, etc.)
-- Login e páginas de erro (`views/auth/`, `views/errors/`) usam `auth/layout.twig` (layout dedicado, sem sidebar)
-- Partials em `views/partials/` (header, sidebar, alerts, footer)
-- Organizar por recurso: `views/users/`, `views/roles/`, `views/auth/`, …
+- Páginas autenticadas → `layout.twig` (sidebar + header)
+- Login/erros → `auth/layout.twig`
+- Partials: `header`, `sidebar`, `sidebar-nav`, `footer`, `alerts`, `filter-bar`
+- Modelo: `views/_templates/blank.twig`
+- Recursos: `views/users/`, `views/roles/` (UI: Perfis), `views/auth/`, …
 
-```twig
-{# ✅ #}
-{% extends 'layout.twig' %}
-{% block content %}
-  {% include 'partials/alerts.twig' %}
-  ...
-{% endblock %}
-```
+## Sidebar e globals Twig
 
-## Segurança e dados
+- Global `permissions` = slugs do usuário (RBAC) — **nunca** passar `permissions` no `render()` de uma view
+- Listas de permissões do formulário: usar `permission_list`
+- Nav única de RBAC: **Perfis** (`/perfis`); permissões se editam dentro do perfil
 
-- Autoescape HTML está ativo — **não** usar `|raw` com input de usuário
-- Forms POST: campo hidden `csrf_token` com `{{ csrf_token }}`
-- Variáveis globais típicas: `user`, `permissions`, `csrf_token`, `flash_messages`
+## Filtros
 
-## Front-end
+- Usar `{% embed 'partials/filter-bar.twig' %}` com `action`, `clear_url`, `is_filtered`
+- Sempre oferecer **Limpar** quando houver filtro ativo
 
-- AdminLTE 4 local em `public/assets/adminlte/` — sem CDN
-- Não introduzir frameworks JS pesados; manter Bootstrap/AdminLTE do template
+## Assets (locais — sem CDN)
+
+- Bootstrap `6.0.0-alpha.1`: `/assets/bootstrap/`
+- Icons: `/assets/bootstrap-icons/`
+- App: `/assets/app/css/app.css`, `/assets/app/js/app.js`
+- Brand: `/assets/brand/`
+- JS: `type="module"` (ESM-only no BS6)
+- Classes BS6: `btn-solid theme-primary`, `btn-outline`, `check` + `form-field`, `drawer` (não offcanvas), `menu` (não dropdown), `md:d-none` / `lg:col-6`
+
+## Tema
+
+- `data-bs-theme="light|dark"` no `<html>`; toggle via `data-theme-toggle` + `localStorage`
+
+## Segurança
+
+- Autoescape on; não usar `|raw` com input de usuário
+- Forms POST: `csrf_token`

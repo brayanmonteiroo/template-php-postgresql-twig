@@ -2,46 +2,64 @@
 {% block title %}{{ user ? 'Editar usuário' : 'Novo usuário' }}{% endblock %}
 {% block page_title %}{{ user ? 'Editar usuário' : 'Novo usuário' }}{% endblock %}
 {% block breadcrumb %}
-<li class="breadcrumb-item"><a href="/dashboard">Painel</a></li>
-<li class="breadcrumb-item"><a href="/users">Usuários</a></li>
-<li class="breadcrumb-item active" aria-current="page">{{ user ? 'Editar' : 'Novo usuário' }}</li>
+<li><a href="/dashboard">Painel</a></li>
+<li aria-hidden="true">/</li>
+<li><a href="/users">Usuários</a></li>
+<li aria-hidden="true">/</li>
+<li aria-current="page">{{ user ? 'Editar' : 'Novo' }}</li>
 {% endblock %}
 {% block content %}
-<form method="post" action="{{ user ? '/users/' ~ user.id : '/users' }}">
+<form method="post" action="{{ user ? '/users/' ~ user.id : '/users' }}" class="app-panel app-form vstack gap-4">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-    <div class="form-group">
-        <label for="name">Nome</label>
-        <input type="text" class="form-control {{ errors.name is defined ? 'is-invalid' : '' }}" id="name" name="name" value="{{ user.name|default('') }}" required>
-        {% if errors.name is defined %}<div class="invalid-feedback">{{ errors.name }}</div>{% endif %}
-    </div>
-    <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" class="form-control {{ errors.email is defined ? 'is-invalid' : '' }}" id="email" name="email" value="{{ user.email|default('') }}" required>
-        {% if errors.email is defined %}<div class="invalid-feedback">{{ errors.email }}</div>{% endif %}
-    </div>
-    <div class="form-group">
-        <label for="password">Senha {% if user %} (deixe em branco para manter){% endif %}</label>
-        <input type="password" class="form-control {{ errors.password is defined ? 'is-invalid' : '' }}" id="password" name="password" {{ user ? '' : 'required' }}>
-        {% if errors.password is defined %}<div class="invalid-feedback">{{ errors.password }}</div>{% endif %}
-    </div>
-    <div class="form-group">
-        <label for="status">Status</label>
-        <select class="form-select" id="status" name="status">
-            <option value="active" {{ (user.status|default('')) == 'active' ? 'selected' : '' }}>Ativo</option>
-            <option value="inactive" {{ (user.status|default('')) == 'inactive' ? 'selected' : '' }}>Inativo</option>
-        </select>
-    </div>
-    <div class="form-group">
-        <label>Papéis</label>
-        {% for role in roles %}
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" name="role_ids[]" value="{{ role.id }}" id="role_{{ role.id }}"
-                {{ (user.role_ids is defined and role.id in user.role_ids) ? 'checked' : '' }}>
-            <label class="form-check-label" for="role_{{ role.id }}">{{ role.name }}</label>
+
+    <div class="app-form-grid">
+        <div>
+            <label class="form-label" for="name">Nome</label>
+            <input type="text" class="form-control {{ errors.name is defined ? 'is-invalid' : '' }}" id="name" name="name" value="{{ user.name|default('') }}" required>
+            {% if errors.name is defined %}<div class="invalid-feedback">{{ errors.name }}</div>{% endif %}
         </div>
-        {% endfor %}
+        <div>
+            <label class="form-label" for="email">E-mail</label>
+            <input type="email" class="form-control {{ errors.email is defined ? 'is-invalid' : '' }}" id="email" name="email" value="{{ user.email|default('') }}" required>
+            {% if errors.email is defined %}<div class="invalid-feedback">{{ errors.email }}</div>{% endif %}
+        </div>
+        <div>
+            <label class="form-label" for="password">Senha{% if user %} <span class="text-secondary fw-normal">(deixe em branco para manter)</span>{% endif %}</label>
+            <input type="password" class="form-control {{ errors.password is defined ? 'is-invalid' : '' }}" id="password" name="password" {{ user ? '' : 'required' }}>
+            {% if errors.password is defined %}<div class="invalid-feedback">{{ errors.password }}</div>{% endif %}
+        </div>
+        <div>
+            <label class="form-label" for="status">Status</label>
+            <select class="form-control" id="status" name="status">
+                <option value="active" {{ (user.status|default('')) == 'active' ? 'selected' : '' }}>Ativo</option>
+                <option value="inactive" {{ (user.status|default('')) == 'inactive' ? 'selected' : '' }}>Inativo</option>
+            </select>
+        </div>
     </div>
-    <button type="submit" class="btn btn-primary">Salvar</button>
-    <a href="/users" class="btn btn-secondary">Cancelar</a>
+
+    <fieldset>
+        <legend class="form-label fs-6 mb-2">Perfis</legend>
+        <p class="text-secondary small mb-3">Defina quais perfis de acesso este usuário possui.</p>
+        <div class="app-permission-grid">
+            {% for role in roles %}
+            <div class="form-field">
+                <input class="check theme-primary" type="checkbox" name="role_ids[]" value="{{ role.id }}" id="role_{{ role.id }}"
+                    {{ (user.role_ids is defined and role.id in user.role_ids) ? 'checked' : '' }}>
+                <label for="role_{{ role.id }}">{{ role.name }}</label>
+            </div>
+            {% endfor %}
+        </div>
+    </fieldset>
+
+    <div class="d-flex flex-wrap gap-2">
+        <button type="submit" class="btn-solid theme-primary app-btn-with-icon">
+            <i class="bi bi-check-lg" aria-hidden="true"></i>
+            Salvar
+        </button>
+        <a href="/users" class="btn-subtle theme-secondary app-btn-with-icon">
+            <i class="bi bi-x-lg" aria-hidden="true"></i>
+            Cancelar
+        </a>
+    </div>
 </form>
 {% endblock %}

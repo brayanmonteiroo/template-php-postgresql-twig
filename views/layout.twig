@@ -4,55 +4,73 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Admin{% endblock %} | Template</title>
-    <link rel="icon" type="image/x-icon" href="/assets/adminlte/img/favicon%20(2).ico">
-    <link rel="icon" type="image/png" sizes="32x32" href="/assets/adminlte/img/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/assets/adminlte/img/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="192x192" href="/assets/adminlte/img/android-chrome-192x192.png">
-    <link rel="stylesheet" href="/assets/adminlte/lib/fonts/source-sans-3/index.css">
-    <link rel="stylesheet" href="/assets/adminlte/lib/overlayscrollbars/overlayscrollbars.min.css">
-    <link rel="stylesheet" href="/assets/adminlte/lib/bootstrap-icons/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="/assets/adminlte/css/adminlte.min.css">
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('app-theme');
+          if (t !== 'light' && t !== 'dark') {
+            t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          document.documentElement.setAttribute('data-bs-theme', t);
+          if (localStorage.getItem('app-sidebar-collapsed') === '1') {
+            document.documentElement.classList.add('sidebar-collapsed-pending');
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <link rel="icon" type="image/x-icon" href="/assets/brand/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/brand/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/assets/brand/apple-touch-icon.png">
+    <link rel="stylesheet" href="/assets/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/assets/app/css/app.css?v=5">
 </head>
-<body class="layout-fixed sidebar-expand-lg sidebar-mini sidebar-open bg-body-tertiary">
-<div class="app-wrapper">
-    {% include 'partials/header.twig' %}
+<body>
+<div class="app-shell" id="app-shell">
     {% include 'partials/sidebar.twig' %}
+    {% include 'partials/header.twig' %}
     <main class="app-main">
-        <div class="app-content-header">
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col-sm-6"><h3 class="mb-0">{% block page_title %}{% endblock %}</h3></div>
-                    <div class="col-sm-6">
-                        <ol class="breadcrumb float-sm-end">
-                            {% block breadcrumb %}
-                            <li class="breadcrumb-item"><a href="/dashboard">Painel</a></li>
-                            <li class="breadcrumb-item active" aria-current="page">{% block breadcrumb_current %}Página{% endblock %}</li>
-                            {% endblock %}
-                        </ol>
-                    </div>
-                </div>
+        <div class="app-page-head">
+            <div>
+                <h1>{% block page_title %}{% endblock %}</h1>
+                <ol class="app-breadcrumb" aria-label="breadcrumb">
+                    {% block breadcrumb %}
+                    <li><a href="/dashboard">Painel</a></li>
+                    <li aria-hidden="true">/</li>
+                    <li aria-current="page">{% block breadcrumb_current %}Página{% endblock %}</li>
+                    {% endblock %}
+                </ol>
             </div>
+            <div>{% block page_actions %}{% endblock %}</div>
         </div>
-        <div class="app-content">
-            <div class="container-fluid">
-                {% include 'partials/alerts.twig' %}
-                {% block content %}{% endblock %}
-            </div>
-        </div>
+        {% include 'partials/alerts.twig' %}
+        {% block content %}{% endblock %}
     </main>
     {% include 'partials/footer.twig' %}
 </div>
-<script src="/assets/adminlte/lib/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="/assets/adminlte/js/bootstrap.bundle.min.js"></script>
-<script src="/assets/adminlte/js/adminlte.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    var sidebarWrapper = document.querySelector('.sidebar-wrapper');
-    if (sidebarWrapper && typeof OverlayScrollbarsGlobal !== 'undefined' && OverlayScrollbarsGlobal.OverlayScrollbars) {
-        OverlayScrollbarsGlobal.OverlayScrollbars(sidebarWrapper, { scrollbars: { theme: 'os-theme-light', autoHide: 'leave', clickScroll: true } });
+  (function () {
+    if (document.documentElement.classList.contains('sidebar-collapsed-pending')) {
+      var shell = document.getElementById('app-shell');
+      if (shell) shell.classList.add('is-sidebar-collapsed');
+      document.documentElement.classList.remove('sidebar-collapsed-pending');
     }
-});
+  })();
 </script>
+
+<dialog class="drawer drawer-start" tabindex="-1" id="sidebarDrawer" aria-labelledby="sidebarDrawerLabel">
+    <div class="drawer-header" style="background: var(--app-sidebar-bg); color: var(--app-sidebar-active); border-color: color-mix(in oklab, #fff 8%, transparent);">
+        <h2 class="drawer-title h6 mb-0" id="sidebarDrawerLabel">Navegação</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="drawer" aria-label="Fechar" style="filter: invert(1);"></button>
+    </div>
+    <div class="drawer-body p-0" style="background: var(--app-sidebar-bg);">
+        {% include 'partials/sidebar-nav.twig' %}
+    </div>
+</dialog>
+
+<script type="module" src="/assets/bootstrap/bootstrap.bundle.min.js"></script>
+<script type="module" src="/assets/app/js/app.js?v=5"></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

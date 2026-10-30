@@ -1,29 +1,62 @@
-<nav class="app-header navbar navbar-expand bg-body">
-    <div class="container-fluid">
-        <ul class="navbar-nav">
-            <li class="nav-item">
-                <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button"><i class="bi bi-list"></i></a>
-            </li>
-        </ul>
-        <ul class="navbar-nav ms-auto">
-            <li class="nav-item dropdown">
-                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                    <span class="d-none d-md-inline">{{ user.name|default('') }}</span>
-                    <i class="bi bi-person-circle ms-1"></i>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
-                    <li>
-                        <a href="/profile" class="dropdown-item"><i class="bi bi-person me-2"></i>Perfil</a>
-                    </li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <a href="#" class="dropdown-item" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i class="bi bi-box-arrow-right me-2"></i>Sair</a>
-                    </li>
-                </ul>
-            </li>
-        </ul>
-        <form id="logout-form" action="/logout" method="post" style="display: none;">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        </form>
+<header class="app-header">
+    <div class="d-flex align-items-center gap-1">
+        <button
+            type="button"
+            class="app-icon-btn app-sidebar-toggle"
+            data-bs-toggle="drawer"
+            data-bs-target="#sidebarDrawer"
+            aria-controls="sidebarDrawer"
+            aria-label="Abrir menu"
+        >
+            <i class="bi bi-list" aria-hidden="true"></i>
+        </button>
+        <button
+            type="button"
+            class="app-icon-btn app-sidebar-collapse"
+            data-sidebar-collapse
+            aria-label="Recolher menu"
+            title="Recolher / expandir menu"
+        >
+            <i class="bi bi-layout-sidebar-inset" data-sidebar-collapse-icon aria-hidden="true"></i>
+        </button>
+        <span class="md:d-none fw-semibold">Template Admin</span>
     </div>
-</nav>
+    <div class="d-flex align-items-center gap-1">
+        <button
+            type="button"
+            class="app-icon-btn"
+            data-theme-toggle
+            aria-label="Alternar tema"
+            title="Alternar tema"
+        >
+            <i class="bi bi-moon-stars" data-theme-icon aria-hidden="true"></i>
+        </button>
+        <div>
+            <button
+                type="button"
+                class="app-icon-btn"
+                data-bs-toggle="menu"
+                aria-expanded="false"
+                aria-label="Menu do usuário"
+                title="{{ user.name|default('Conta') }}"
+            >
+                <i class="bi bi-person-circle" aria-hidden="true"></i>
+            </button>
+            <div class="menu">
+                <div class="menu-header px-3 py-2 small text-secondary">{{ user.name|default('') }}</div>
+                <a class="menu-item" href="/profile">
+                    <i class="bi bi-person menu-item-icon" aria-hidden="true"></i>
+                    Perfil
+                </a>
+                <hr class="menu-divider">
+                <button type="button" class="menu-item" onclick="document.getElementById('logout-form').submit();">
+                    <i class="bi bi-box-arrow-right menu-item-icon" aria-hidden="true"></i>
+                    Sair
+                </button>
+            </div>
+        </div>
+    </div>
+    <form id="logout-form" action="/logout" method="post" class="d-none">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    </form>
+</header>

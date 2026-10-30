@@ -27,11 +27,11 @@ class RoleController
 
     public function create(): void
     {
-        $permissions = $this->roleService()->getPermissionsForSelect();
         $twig = $this->container['twig'];
         echo $twig->render('roles/form.twig', [
             'role' => null,
-            'permissions' => $permissions,
+            // Não usar a chave "permissions": sobrescreve o global Twig da sidebar.
+            'permission_groups' => $this->roleService()->getPermissionsGroupedForSelect(),
             'errors' => [],
         ]);
     }
@@ -48,14 +48,14 @@ class RoleController
         ];
         $result = $this->roleService()->createRole($data);
         if ($result['success']) {
-            flash_set('success', 'Papel criado com sucesso.');
-            redirect('/roles');
+            flash_set('success', 'Perfil criado com sucesso.');
+            redirect('/perfis');
             return;
         }
         $twig = $this->container['twig'];
         echo $twig->render('roles/form.twig', [
             'role' => $data,
-            'permissions' => $this->roleService()->getPermissionsForSelect(),
+            'permission_groups' => $this->roleService()->getPermissionsGroupedForSelect(),
             'errors' => $result['errors'],
         ]);
     }
@@ -71,7 +71,7 @@ class RoleController
         $twig = $this->container['twig'];
         echo $twig->render('roles/form.twig', [
             'role' => $role,
-            'permissions' => $this->roleService()->getPermissionsForSelect(),
+            'permission_groups' => $this->roleService()->getPermissionsGroupedForSelect(),
             'errors' => [],
         ]);
     }
@@ -88,8 +88,8 @@ class RoleController
         ];
         $result = $this->roleService()->updateRole($id, $data);
         if ($result['success']) {
-            flash_set('success', 'Papel atualizado com sucesso.');
-            redirect('/roles');
+            flash_set('success', 'Perfil atualizado com sucesso.');
+            redirect('/perfis');
             return;
         }
         $role = $this->roleService()->getRoleById($id);
@@ -99,7 +99,7 @@ class RoleController
         $twig = $this->container['twig'];
         echo $twig->render('roles/form.twig', [
             'role' => $role ?? array_merge($data, ['id' => $id]),
-            'permissions' => $this->roleService()->getPermissionsForSelect(),
+            'permission_groups' => $this->roleService()->getPermissionsGroupedForSelect(),
             'errors' => $result['errors'],
         ]);
     }
@@ -111,10 +111,10 @@ class RoleController
         }
         $result = $this->roleService()->deleteRole($id);
         if ($result) {
-            flash_set('success', 'Papel excluído com sucesso.');
+            flash_set('success', 'Perfil excluído com sucesso.');
         } else {
-            flash_set('error', 'O papel Administrador não pode ser excluído.');
+            flash_set('error', 'O perfil Administrador não pode ser excluído.');
         }
-        redirect('/roles');
+        redirect('/perfis');
     }
 }

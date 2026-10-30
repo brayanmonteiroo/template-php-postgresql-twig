@@ -4,19 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Template Admin{% endblock %}</title>
-    <link rel="icon" type="image/x-icon" href="/assets/adminlte/img/favicon%20(2).ico">
-    <link rel="icon" type="image/png" sizes="32x32" href="/assets/adminlte/img/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/assets/adminlte/img/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="192x192" href="/assets/adminlte/img/android-chrome-192x192.png">
-    <link rel="stylesheet" href="/assets/adminlte/lib/fonts/source-sans-3/index.css">
-    <link rel="stylesheet" href="/assets/adminlte/lib/bootstrap-icons/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="/assets/adminlte/css/adminlte.min.css">
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('app-theme');
+          if (t !== 'light' && t !== 'dark') {
+            t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          document.documentElement.setAttribute('data-bs-theme', t);
+        } catch (e) {}
+      })();
+    </script>
+    <link rel="icon" type="image/x-icon" href="/assets/brand/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/brand/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/assets/brand/apple-touch-icon.png">
+    <link rel="stylesheet" href="/assets/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/bootstrap-icons/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/assets/app/css/app.css?v=5">
     {% block head %}{% endblock %}
 </head>
-<body class="login-page bg-body-secondary">
+<body>
 {% block content %}{% endblock %}
-<script src="/assets/adminlte/js/bootstrap.bundle.min.js"></script>
-<script src="/assets/adminlte/js/adminlte.min.js"></script>
+<script type="module" src="/assets/bootstrap/bootstrap.bundle.min.js"></script>
+<script type="module" src="/assets/app/js/app.js?v=5"></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

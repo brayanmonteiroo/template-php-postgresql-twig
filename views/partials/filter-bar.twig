@@ -1,0 +1,34 @@
+{#
+  Barra de filtro reutilizável.
+  Limpar fica à esquerda de Filtrar e mantém espaço (invisible) para o Filtrar não andar.
+
+  {% embed 'partials/filter-bar.twig' with {
+      action: '/users',
+      clear_url: '/users',
+      is_filtered: (search != '' or status != ''),
+      search: search,
+      status: status
+  } only %}
+    {% block fields %}...{% endblock %}
+  {% endembed %}
+#}
+<form method="get" action="{{ action }}" class="app-panel app-filter-bar mb-3">
+    <div class="app-filter-bar__fields">
+        {% block fields %}{% endblock %}
+    </div>
+    <div class="app-filter-bar__actions">
+        <a
+            href="{{ clear_url }}"
+            class="btn-subtle theme-secondary btn-sm app-btn-with-icon app-filter-clear{{ is_filtered|default(false) ? '' : ' invisible' }}"
+            title="Limpar filtros"
+            {% if not is_filtered|default(false) %}aria-hidden="true" tabindex="-1"{% endif %}
+        >
+            <i class="bi bi-x-circle" aria-hidden="true"></i>
+            Limpar
+        </a>
+        <button type="submit" class="btn-solid theme-primary btn-sm app-btn-with-icon" title="Filtrar">
+            <i class="bi bi-funnel" aria-hidden="true"></i>
+            Filtrar
+        </button>
+    </div>
+</form>

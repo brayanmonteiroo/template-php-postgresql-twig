@@ -86,7 +86,50 @@ class Dispatcher
             return;
         }
         $controller = new $controllerClass($this->container);
-        $controller->{$methodName}(...array_values($vars));
+        $controller->{$methodName}(...$this->resolveArgs($controller, $methodName, $vars));
+    }
+
+    /**
+     * Converte parâmetros de rota para os tipos tipados do método (ex.: {id} string → int).
+     *
+     * @param array<string, mixed> $vars
+     * @return list<mixed>
+     */
+    private function resolveArgs(object $controller, string $methodName, array $vars): array
+    {
+        $ref = new \ReflectionMethod($controller, $methodName);
+        $args = [];
+
+        foreach ($ref->getParameters() as $param) {
+            $name = $param->getName();
+            if (!array_key_exists($name, $vars)) {
+                if ($param->isDefaultValueAvailable()) {
+                    $args[] = $param->getDefaultValue();
+                    continue;
+                }
+                if ($param->allowsNull()) {
+                    $args[] = null;
+                    continue;
+                }
+                $args[] = null;
+                continue;
+            }
+
+            $value = $vars[$name];
+            $type = $param->getType();
+            if ($type instanceof \ReflectionNamedType && $type->isBuiltin()) {
+                $value = match ($type->getName()) {
+                    'int' => (int) $value,
+                    'float' => (float) $value,
+                    'bool' => filter_var($value, FILTER_VALIDATE_BOOL),
+                    'string' => (string) $value,
+                    default => $value,
+                };
+            }
+            $args[] = $value;
+        }
+
+        return $args;
     }
 
     /**

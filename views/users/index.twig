@@ -2,73 +2,89 @@
 {% block title %}Usuários{% endblock %}
 {% block page_title %}Usuários{% endblock %}
 {% block breadcrumb_current %}Usuários{% endblock %}
-{% block content %}
+{% block page_actions %}
 {% if 'user.create' in permissions %}
-<p><a href="/users/create" class="btn btn-primary">Novo usuário</a></p>
+<a href="/users/create" class="btn-solid theme-primary btn-sm app-btn-with-icon">
+    <i class="bi bi-plus-lg" aria-hidden="true"></i>
+    Novo usuário
+</a>
 {% endif %}
-<form method="get" action="/users" class="card card-outline card-primary mb-3">
-    <div class="card-body row g-2">
-        <div class="col-auto">
-            <input type="text" name="search" class="form-control" placeholder="Buscar por nome ou email" value="{{ search }}">
-        </div>
-        <div class="col-auto">
-            <select name="status" class="form-select">
-                <option value="">Todos os status</option>
-                <option value="active" {{ status == 'active' ? 'selected' : '' }}>Ativo</option>
-                <option value="inactive" {{ status == 'inactive' ? 'selected' : '' }}>Inativo</option>
-            </select>
-        </div>
-        <div class="col-auto">
-            <button type="submit" class="btn btn-primary">Filtrar</button>
-        </div>
+{% endblock %}
+{% block content %}
+{% embed 'partials/filter-bar.twig' with {
+    action: '/users',
+    clear_url: '/users',
+    is_filtered: (search != '' or status != ''),
+    search: search,
+    status: status
+} only %}
+    {% block fields %}
+    <div class="input-group app-filter-search">
+        <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
+        <input type="text" name="search" class="form-control" placeholder="Buscar nome ou e-mail" value="{{ search|default('') }}">
     </div>
-</form>
-<div class="card">
-    <div class="card-body table-responsive p-0">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th><a href="?{{ build_query({page: 1, search: search, status: status, sort: 'id', order: (sort == 'id' and order == 'asc') ? 'desc' : 'asc'}) }}">ID</a></th>
-                    <th><a href="?{{ build_query({page: 1, search: search, status: status, sort: 'name', order: (sort == 'name' and order == 'asc') ? 'desc' : 'asc'}) }}">Nome</a></th>
-                    <th><a href="?{{ build_query({page: 1, search: search, status: status, sort: 'email', order: (sort == 'email' and order == 'asc') ? 'desc' : 'asc'}) }}">Email</a></th>
-                    <th><a href="?{{ build_query({page: 1, search: search, status: status, sort: 'status', order: (sort == 'status' and order == 'asc') ? 'desc' : 'asc'}) }}">Status</a></th>
-                    {% if 'user.edit' in permissions or 'user.delete' in permissions %}
-                    <th>Ações</th>
+    <select name="status" class="form-control app-filter-select" aria-label="Status">
+        <option value="">Todos os status</option>
+        <option value="active" {{ status|default('') == 'active' ? 'selected' : '' }}>Ativo</option>
+        <option value="inactive" {{ status|default('') == 'inactive' ? 'selected' : '' }}>Inativo</option>
+    </select>
+    {% endblock %}
+{% endembed %}
+
+<div class="app-table-wrap">
+    <table class="table table-hover mb-0">
+        <thead>
+            <tr>
+                <th><a href="?{{ build_query({page: 1, search: search, status: status, sort: 'id', order: (sort == 'id' and order == 'asc') ? 'desc' : 'asc'}) }}">ID</a></th>
+                <th><a href="?{{ build_query({page: 1, search: search, status: status, sort: 'name', order: (sort == 'name' and order == 'asc') ? 'desc' : 'asc'}) }}">Nome</a></th>
+                <th><a href="?{{ build_query({page: 1, search: search, status: status, sort: 'email', order: (sort == 'email' and order == 'asc') ? 'desc' : 'asc'}) }}">E-mail</a></th>
+                <th><a href="?{{ build_query({page: 1, search: search, status: status, sort: 'status', order: (sort == 'status' and order == 'asc') ? 'desc' : 'asc'}) }}">Status</a></th>
+                {% if 'user.edit' in permissions or 'user.delete' in permissions %}
+                <th class="text-end">Ações</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td class="font-mono">{{ u.id }}</td>
+                <td>{{ u.name }}</td>
+                <td>{{ u.email }}</td>
+                <td>
+                    <span class="badge badge-subtle theme-{{ u.status == 'active' ? 'success' : 'secondary' }}">
+                        {{ u.status == 'active' ? 'Ativo' : (u.status == 'inactive' ? 'Inativo' : u.status) }}
+                    </span>
+                </td>
+                {% if 'user.edit' in permissions or 'user.delete' in permissions %}
+                <td class="text-end text-nowrap">
+                    {% if 'user.edit' in permissions %}
+                    <a href="/users/{{ u.id }}/edit" class="app-icon-btn app-icon-btn--accent" title="Editar" aria-label="Editar {{ u.name }}">
+                        <i class="bi bi-pencil" aria-hidden="true"></i>
+                    </a>
                     {% endif %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for u in users %}
-                <tr>
-                    <td>{{ u.id }}</td>
-                    <td>{{ u.name }}</td>
-                    <td>{{ u.email }}</td>
-                    <td>{{ u.status == 'active' ? 'Ativo' : (u.status == 'inactive' ? 'Inativo' : u.status) }}</td>
-                    {% if 'user.edit' in permissions or 'user.delete' in permissions %}
-                    <td>
-                        {% if 'user.edit' in permissions %}
-                        <a href="/users/{{ u.id }}/edit" class="btn btn-sm btn-secondary">Editar</a>
-                        {% endif %}
-                        {% if 'user.delete' in permissions %}
-                        <form action="/users/{{ u.id }}/delete" method="post" class="d-inline" onsubmit="return confirm('Excluir este usuário?');">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                            <button type="submit" class="btn btn-sm btn-danger">Excluir</button>
-                        </form>
-                        {% endif %}
-                    </td>
+                    {% if 'user.delete' in permissions %}
+                    <form action="/users/{{ u.id }}/delete" method="post" class="d-inline" onsubmit="return confirm('Excluir este usuário?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <button type="submit" class="app-icon-btn app-icon-btn--danger" title="Excluir" aria-label="Excluir {{ u.name }}">
+                            <i class="bi bi-trash" aria-hidden="true"></i>
+                        </button>
+                    </form>
                     {% endif %}
-                </tr>
-                {% else %}
-                <tr><td colspan="5">Nenhum usuário.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+                </td>
+                {% endif %}
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="empty-state">Nenhum usuário encontrado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
     {% if total > 0 %}
-    <div class="card-footer d-flex justify-content-between align-items-center">
-        <span class="text-muted">Total: {{ total }} usuário(s)</span>
+    <div class="app-table-footer">
+        <span class="text-secondary small">Total: {{ total }} usuário(s)</span>
         {% if pages > 1 %}
-        <nav>
+        <nav aria-label="Paginação">
             <ul class="pagination pagination-sm mb-0">
                 {% if current_page > 1 %}
                 <li class="page-item"><a class="page-link" href="?{{ build_query({page: current_page - 1, search: search, status: status, sort: sort, order: order}) }}">Anterior</a></li>

@@ -1,6 +1,6 @@
 # Template administrativo PHP + PostgreSQL + Twig
 
-Template com login, RBAC (roles e permissões), MVC + Services, FastRoute, Twig e AdminLTE. Ambiente de execução: **Docker** (Apache + PHP 8.5 + PostgreSQL), alinhado à [guia oficial Docker para PHP](https://docs.docker.com/guides/php/).
+Template com login, RBAC (roles e permissões), MVC + Services, FastRoute, Twig e UI **Bootstrap 6** (shell “Precision Console”, light/dark). Ambiente de execução: **Docker** (Apache + PHP 8.5 + PostgreSQL), alinhado à [guia oficial Docker para PHP](https://docs.docker.com/guides/php/).
 
 ## Requisitos
 
@@ -108,13 +108,24 @@ docker compose -f compose.yaml -f compose.prod.yaml exec server php database/see
 - GET/POST `/users` – listar / criar (`user.view` / `user.create`)
 - GET `/users/{id}/edit`, POST `/users/{id}` – editar (`user.edit`)
 - POST `/users/{id}/delete` – excluir (`user.delete`)
-- GET/POST `/roles` – listar/criar papéis (`role.view` / `role.create`)
-- GET `/roles/{id}/edit`, POST `/roles/{id}`, POST `/roles/{id}/delete` – editar/excluir (`role.edit` / `role.delete`)
-- GET `/permissions`, POST `/permissions` – permissões por papel (`permission.view` / `permission.manage`)
+- GET/POST `/perfis` – listar/criar perfis RBAC (`role.view` / `role.create`); permissões se editam no formulário do perfil
+- GET `/perfis/{id}/edit`, POST `/perfis/{id}`, POST `/perfis/{id}/delete` – editar/excluir (`role.edit` / `role.delete`)
+- Aliases legados: `/roles`, `/permissions` → mesmo fluxo de perfis
 
-## Front-end (AdminLTE 4)
+## Front-end (Bootstrap 6)
 
-A base do front está em `public/assets/adminlte/` (AdminLTE 4, Bootstrap 5, Bootstrap Icons, OverlayScrollbars, Source Sans 3). Servido localmente, sem CDN.
+UI própria (**Precision Console**) sobre **Bootstrap `6.0.0-alpha.1`**, Bootstrap Icons e tipografia IBM Plex (Sans/Mono), tudo vendido em `public/assets/` (sem CDN):
+
+| Pasta | Conteúdo |
+|-------|----------|
+| `public/assets/bootstrap/` | CSS/JS do Bootstrap 6 (JS ESM — `type="module"`) |
+| `public/assets/bootstrap-icons/` | Ícones |
+| `public/assets/app/` | `app.css` (tokens, shell, login) + `app.js` (tema + nav ativa) |
+| `public/assets/brand/` | Logo e favicons |
+
+Light/dark via `data-bs-theme` + toggle persistido. Sidebar à esquerda; drawer no mobile.
+
+Skills oficiais do Bootstrap (AI): `.agents/skills/bootstrap-*` (também em `.cursor/skills/` via symlink). Ver [Using Bootstrap with AI](https://getbootstrap.com/docs/6.0/getting-started/ai/).
 
 ## Testes
 

@@ -3,24 +3,32 @@
 {% block page_title %}Meu perfil{% endblock %}
 {% block breadcrumb_current %}Meu perfil{% endblock %}
 {% block content %}
-<form method="post" action="/profile">
+<form method="post" action="/profile" class="app-panel app-form vstack gap-3">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-    <div class="form-group">
-        <label for="name">Nome</label>
+    <div>
+        <label class="form-label" for="name">Nome</label>
         <input type="text" class="form-control {{ errors.name is defined ? 'is-invalid' : '' }}" id="name" name="name" value="{{ user.name|default('') }}" required>
         {% if errors.name is defined %}<div class="invalid-feedback">{{ errors.name }}</div>{% endif %}
     </div>
-    <div class="form-group">
-        <label for="email">Email</label>
+    <div>
+        <label class="form-label" for="email">E-mail</label>
         <input type="email" class="form-control {{ errors.email is defined ? 'is-invalid' : '' }}" id="email" name="email" value="{{ user.email|default('') }}" required>
         {% if errors.email is defined %}<div class="invalid-feedback">{{ errors.email }}</div>{% endif %}
     </div>
-    <div class="form-group">
-        <label for="password">Nova senha (deixe em branco para manter a atual)</label>
+    <div>
+        <label class="form-label" for="password">Nova senha <span class="text-secondary fw-normal">(deixe em branco para manter)</span></label>
         <input type="password" class="form-control {{ errors.password is defined ? 'is-invalid' : '' }}" id="password" name="password">
         {% if errors.password is defined %}<div class="invalid-feedback">{{ errors.password }}</div>{% endif %}
     </div>
-    <button type="submit" class="btn btn-primary">Salvar</button>
-    <a href="/dashboard" class="btn btn-secondary">Voltar</a>
+    <div class="d-flex flex-wrap gap-2">
+        <button type="submit" class="btn-solid theme-primary app-btn-with-icon">
+            <i class="bi bi-check-lg" aria-hidden="true"></i>
+            Salvar
+        </button>
+        <a href="/dashboard" class="btn-subtle theme-secondary app-btn-with-icon">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            Voltar
+        </a>
+    </div>
 </form>
 {% endblock %}

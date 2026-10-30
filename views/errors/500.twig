@@ -1,15 +1,14 @@
 {% extends 'auth/layout.twig' %}
 
-{% block title %}500 - Erro interno | Template Admin{% endblock %}
+{% block title %}500 — Erro interno | Template Admin{% endblock %}
 
 {% block content %}
-<div class="login-box">
-    <div class="card">
-        <div class="card-body text-center py-5">
-            <h1 class="display-6 text-muted">500</h1>
-            <p class="mb-0">Ocorreu um erro interno. Tente novamente mais tarde.</p>
-            <a href="/" class="btn btn-primary mt-3">Ir para o início</a>
-        </div>
+<div class="auth-error-page">
+    <div class="auth-error-card">
+        <div class="code">500</div>
+        <h1 class="h4 mb-2">Erro interno</h1>
+        <p class="text-secondary mb-4">Algo falhou no servidor. Tente novamente em instantes.</p>
+        <a href="/" class="btn-solid theme-primary">Ir para o início</a>
     </div>
 </div>
 {% endblock %}
