@@ -1,0 +1,38 @@
+{#
+  Dialog de confirmação reutilizável (Bootstrap 6 Dialog).
+  Incluído no layout; ativado por forms com data-confirm.
+
+  Uso:
+  <form action="..." method="post"
+        data-confirm
+        data-confirm-title="Excluir usuário"
+        data-confirm-message="Tem certeza que deseja excluir João?">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <button type="submit" ...>Excluir</button>
+  </form>
+
+  Opcionais: data-confirm-confirm (rótulo do botão destrutivo, padrão "Excluir")
+#}
+<dialog
+    class="dialog"
+    id="confirmDialog"
+    tabindex="-1"
+    aria-labelledby="confirmDialogTitle"
+    data-bs-backdrop="static"
+>
+    <div class="dialog-header">
+        <h2 class="dialog-title h5 mb-0" id="confirmDialogTitle">Confirmar</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="dialog" aria-label="Fechar"></button>
+    </div>
+    <div class="dialog-body">
+        <p class="mb-0" id="confirmDialogMessage">Tem certeza?</p>
+    </div>
+    <div class="dialog-footer">
+        <button type="button" class="btn-subtle theme-secondary" data-bs-dismiss="dialog">
+            Cancelar
+        </button>
+        <button type="button" class="btn-solid theme-danger" id="confirmDialogConfirm">
+            Excluir
+        </button>
+    </div>
+</dialog>

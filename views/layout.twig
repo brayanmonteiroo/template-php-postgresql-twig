@@ -69,8 +69,10 @@
     </div>
 </dialog>
 
+{% include 'partials/confirm-dialog.twig' %}
+
 <script type="module" src="/assets/bootstrap/bootstrap.bundle.min.js" nonce="{{ csp_nonce|default('') }}"></script>
-<script type="module" src="/assets/app/js/app.js?v=6" nonce="{{ csp_nonce|default('') }}"></script>
+<script type="module" src="/assets/app/js/app.js?v=7" nonce="{{ csp_nonce|default('') }}"></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

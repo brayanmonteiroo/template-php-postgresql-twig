@@ -1,6 +1,8 @@
 /**
- * Precision Console — theme, sidebar collapse, active nav (Bootstrap 6 ESM).
+ * Precision Console — theme, sidebar collapse, active nav, confirm dialog (Bootstrap 6 ESM).
  */
+import { Dialog } from "/assets/bootstrap/bootstrap.bundle.min.js";
+
 const THEME_KEY = "app-theme";
 const SIDEBAR_KEY = "app-sidebar-collapsed";
 
@@ -89,8 +91,66 @@ function markActiveNav() {
   });
 }
 
+function initConfirmDialog() {
+  const dialogEl = document.getElementById("confirmDialog");
+  const titleEl = document.getElementById("confirmDialogTitle");
+  const messageEl = document.getElementById("confirmDialogMessage");
+  const confirmBtn = document.getElementById("confirmDialogConfirm");
+  if (!dialogEl || !titleEl || !messageEl || !confirmBtn) {
+    return;
+  }
+
+  const dialog = Dialog.getOrCreateInstance(dialogEl);
+  let pendingForm = null;
+
+  document.addEventListener(
+    "submit",
+    (event) => {
+      const form = event.target;
+      if (!(form instanceof HTMLFormElement) || !form.hasAttribute("data-confirm")) {
+        return;
+      }
+      if (form.dataset.confirmReady === "1") {
+        delete form.dataset.confirmReady;
+        return;
+      }
+      event.preventDefault();
+      pendingForm = form;
+      titleEl.textContent =
+        form.getAttribute("data-confirm-title") || "Confirmar";
+      messageEl.textContent =
+        form.getAttribute("data-confirm-message") ||
+        "Tem certeza que deseja continuar?";
+      confirmBtn.textContent =
+        form.getAttribute("data-confirm-confirm") || "Excluir";
+      dialog.show();
+    },
+    true
+  );
+
+  confirmBtn.addEventListener("click", () => {
+    if (!pendingForm) {
+      return;
+    }
+    const form = pendingForm;
+    pendingForm = null;
+    form.dataset.confirmReady = "1";
+    dialog.hide();
+    if (typeof form.requestSubmit === "function") {
+      form.requestSubmit();
+    } else {
+      form.submit();
+    }
+  });
+
+  dialogEl.addEventListener("hide.bs.dialog", () => {
+    pendingForm = null;
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
   initSidebarCollapse();
   markActiveNav();
+  initConfirmDialog();
 });

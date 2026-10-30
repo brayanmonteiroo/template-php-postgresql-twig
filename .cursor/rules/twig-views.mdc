@@ -20,7 +20,8 @@ Skills oficiais Bootstrap: `.agents/skills/bootstrap-*` (symlink em `.cursor/ski
 
 - Páginas autenticadas → `layout.twig` (sidebar + header)
 - Login/erros → `auth/layout.twig`
-- Partials: `header`, `sidebar`, `sidebar-nav`, `footer`, `alerts`, `filter-bar`
+- Partials: `header`, `sidebar`, `sidebar-nav`, `footer`, `alerts`, `filter-bar`, `confirm-dialog`
+- Exclusão em listagens: form POST com `data-confirm` (+ `data-confirm-title` / `data-confirm-message`); o Dialog BS6 fica no layout
 - Modelo: `views/_templates/blank.twig`
 - Recursos: `views/users/`, `views/roles/` (UI: Perfis), `views/auth/`, …
 
