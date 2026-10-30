@@ -1,5 +1,5 @@
 <aside class="app-sidebar app-sidebar--desktop" aria-label="Barra lateral">
-    <a href="/dashboard" class="app-sidebar-brand">
+    <a href="{{ home_path|default('/dashboard') }}" class="app-sidebar-brand">
         <img src="/assets/brand/brayan-logo.png" alt="" width="32" height="32">
         <span>Template Admin</span>
     </a>

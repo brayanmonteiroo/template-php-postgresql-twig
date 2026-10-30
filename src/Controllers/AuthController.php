@@ -21,7 +21,7 @@ class AuthController
     public function showLogin(): void
     {
         if ($this->authService()->check()) {
-            redirect('/dashboard');
+            redirect($this->homePath());
         }
         $twig = $this->container['twig'];
         echo $twig->render('auth/login.twig', [
@@ -33,7 +33,7 @@ class AuthController
     public function login(): void
     {
         if ($this->authService()->check()) {
-            redirect('/dashboard');
+            redirect($this->homePath());
         }
         if (!validate_csrf($this->container['twig'] ?? null)) {
             return;
@@ -68,7 +68,7 @@ class AuthController
             ]);
             return;
         }
-        redirect('/dashboard');
+        redirect($this->homePath());
     }
 
     public function logout(): void
@@ -78,5 +78,15 @@ class AuthController
         }
         $this->authService()->logout();
         redirect('/login');
+    }
+
+    private function homePath(): string
+    {
+        $permissionService = $this->container['permissionService'] ?? null;
+        if ($permissionService instanceof \App\Services\PermissionService) {
+            return $permissionService->firstAccessiblePath();
+        }
+
+        return '/dashboard';
     }
 }

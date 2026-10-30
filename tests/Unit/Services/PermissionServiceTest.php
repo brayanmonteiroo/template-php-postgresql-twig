@@ -67,4 +67,28 @@ class PermissionServiceTest extends TestCase
         $permission = new PermissionService($userModel, $auth);
         $this->assertSame(['user.view', 'user.create'], $permission->getUserPermissions());
     }
+
+    public function testFirstAccessiblePathPrefersDashboardWhenAllowed(): void
+    {
+        $auth = $this->createAuthServiceStub(['id' => 1]);
+        $userModel = $this->createUserModelStub(['dashboard.view', 'user.view']);
+        $permission = new PermissionService($userModel, $auth);
+        $this->assertSame('/dashboard', $permission->firstAccessiblePath());
+    }
+
+    public function testFirstAccessiblePathFallsBackWhenDashboardDenied(): void
+    {
+        $auth = $this->createAuthServiceStub(['id' => 1]);
+        $userModel = $this->createUserModelStub(['user.view']);
+        $permission = new PermissionService($userModel, $auth);
+        $this->assertSame('/users', $permission->firstAccessiblePath());
+    }
+
+    public function testFirstAccessiblePathFallsBackToProfileWhenNoModulePermission(): void
+    {
+        $auth = $this->createAuthServiceStub(['id' => 1]);
+        $userModel = $this->createUserModelStub([]);
+        $permission = new PermissionService($userModel, $auth);
+        $this->assertSame('/profile', $permission->firstAccessiblePath());
+    }
 }

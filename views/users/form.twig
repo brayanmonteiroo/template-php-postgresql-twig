@@ -2,7 +2,7 @@
 {% block title %}{{ user ? 'Editar usuário' : 'Novo usuário' }}{% endblock %}
 {% block page_title %}{{ user ? 'Editar usuário' : 'Novo usuário' }}{% endblock %}
 {% block breadcrumb %}
-<li><a href="/dashboard">Painel</a></li>
+<li><a href="{{ home_path|default('/dashboard') }}">Início</a></li>
 <li aria-hidden="true">/</li>
 <li><a href="/users">Usuários</a></li>
 <li aria-hidden="true">/</li>

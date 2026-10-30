@@ -25,7 +25,7 @@
             <i class="bi bi-check-lg" aria-hidden="true"></i>
             Salvar
         </button>
-        <a href="/dashboard" class="btn-subtle theme-secondary app-btn-with-icon">
+        <a href="{{ home_path|default('/dashboard') }}" class="btn-subtle theme-secondary app-btn-with-icon">
             <i class="bi bi-arrow-left" aria-hidden="true"></i>
             Voltar
         </a>

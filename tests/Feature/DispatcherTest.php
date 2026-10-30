@@ -76,4 +76,31 @@ class DispatcherTest extends TestCase
         $this->assertSame(405, http_response_code());
         $this->assertStringContainsString('405', $output);
     }
+
+    public function testDashboardDeniedWithoutPermissionReturns403(): void
+    {
+        $basePath = dirname(__DIR__, 2);
+        $routes = require $basePath . '/routes.php';
+        $container = $this->createMinimalContainer();
+
+        $authService = $this->createStub(\App\Services\AuthService::class);
+        $authService->method('check')->willReturn(true);
+        $authService->method('user')->willReturn(['id' => 1, 'name' => 'Test']);
+        $container['authService'] = $authService;
+
+        $permissionService = $this->createStub(\App\Services\PermissionService::class);
+        $permissionService->method('hasPermission')->willReturnCallback(
+            static fn (string $slug): bool => $slug !== 'dashboard.view'
+        );
+        $container['permissionService'] = $permissionService;
+
+        $dispatcher = new Dispatcher($routes, $container);
+
+        ob_start();
+        $dispatcher->handle('GET', '/dashboard');
+        $output = ob_get_clean();
+
+        $this->assertSame(403, http_response_code());
+        $this->assertStringContainsString('403', $output);
+    }
 }

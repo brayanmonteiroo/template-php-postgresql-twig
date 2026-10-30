@@ -2,7 +2,7 @@
 {% block title %}{{ role ? 'Editar perfil' : 'Novo perfil' }}{% endblock %}
 {% block page_title %}{{ role ? 'Editar perfil' : 'Novo perfil' }}{% endblock %}
 {% block breadcrumb %}
-<li><a href="/dashboard">Painel</a></li>
+<li><a href="{{ home_path|default('/dashboard') }}">Início</a></li>
 <li aria-hidden="true">/</li>
 <li><a href="/perfis">Perfis</a></li>
 <li aria-hidden="true">/</li>

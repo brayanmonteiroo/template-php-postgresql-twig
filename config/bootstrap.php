@@ -92,6 +92,10 @@ if (!isset($_SESSION['csrf_token'])) {
 
 $twig->addGlobal('user', $authService->user() ?? []);
 $twig->addGlobal('permissions', $permissionService->getUserPermissions());
+$twig->addGlobal(
+    'home_path',
+    $authService->check() ? $permissionService->firstAccessiblePath() : '/login'
+);
 $twig->addGlobal('csrf_token', $_SESSION['csrf_token'] ?? '');
 $twig->addGlobal('flash_messages', flash_get());
 $twig->addFunction(new TwigFunction('build_query', function (array $params): string {

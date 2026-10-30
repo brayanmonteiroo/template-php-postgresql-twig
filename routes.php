@@ -9,8 +9,8 @@ return \FastRoute\simpleDispatcher(function (RouteCollector $r) {
     $r->addRoute('POST', '/login', 'AuthController@login');
     $r->addRoute('POST', '/logout', 'AuthController@logout');
 
-    $r->addRoute('GET', '/', 'auth:DashboardController@index');
-    $r->addRoute('GET', '/dashboard', 'auth:DashboardController@index');
+    $r->addRoute('GET', '/', 'auth:DashboardController@index:dashboard.view');
+    $r->addRoute('GET', '/dashboard', 'auth:DashboardController@index:dashboard.view');
 
     $r->addRoute('GET', '/users', 'auth:UserController@index:user.view');
     $r->addRoute('GET', '/users/create', 'auth:UserController@create:user.create');
