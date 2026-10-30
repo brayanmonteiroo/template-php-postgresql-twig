@@ -1,0 +1,42 @@
+---
+description: Convenções PHP (PSR-12, tipagem, env, camadas)
+globs: src/**/*.php,config/**/*.php,public/index.php,routes.php,phinx.php,database/**/*.php
+alwaysApply: false
+---
+
+# Código PHP
+
+Base: [PHP manual](https://www.php.net/manual/en/), [PSR-12](https://www.php-fig.org/psr/psr-12/), PHP 8.5+.
+
+## Estilo e tipagem
+
+- Todo arquivo: `declare(strict_types=1);`
+- Tipar propriedades, parâmetros e retornos; preferir tipos nativos / union / nullable
+- PSR-4: `App\` → `src/`; nome da classe = nome do arquivo
+- Não adicionar comentários óbvios; só quando a intenção não for clara
+
+## Ambiente
+
+- Ler env com `env_value()` de `config/env.php` (Compose + `.env`)
+- Senha do banco: `DB_PASSWORD_FILE` (secret Docker) ou fallback `DB_PASSWORD`
+- Não hardcodar credenciais; não commitar `db/password.txt` nem `.env`
+
+## Camadas
+
+```php
+// ❌ BAD — regra de negócio no controller
+public function store(array $c): void {
+    $hash = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $c['pdo']->prepare('INSERT INTO users ...')->execute([...]);
+}
+
+// ✅ GOOD — delegar ao Service
+public function store(array $c): void {
+    $c['userService']->create($_POST);
+    redirect('/users');
+}
+```
+
+- Controllers recebem o **container array** no construtor (sem DI PSR)
+- Models: SQL/PDO; Services: orquestração e validação de domínio
+- Helpers compartilhados em `src/Helpers/functions.php` (redirect, CSRF, flash)

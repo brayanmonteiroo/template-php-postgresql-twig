@@ -1,0 +1,38 @@
+---
+description: Stack e arquitetura do template PHP puro SSR (não Laravel)
+alwaysApply: true
+---
+
+# PHP puro SSR — regras do projeto
+
+Este é um template **PHP puro** (SSR) com Twig, FastRoute, PDO/PostgreSQL, Phinx e PHPUnit. Ver [ARQUITETURA.md](ARQUITETURA.md).
+
+## Stack (não usar Laravel)
+
+- PHP **8.5+**, Twig 3, nikic/fast-route, vlucas/phpdotenv, robmorgan/phinx, PHPUnit 10
+- Runtime Docker: Apache multi-stage ([guia Docker PHP](https://docs.docker.com/guides/php/))
+- **Proibido** assumir Laravel: Eloquent, Blade, Artisan, Breeze, Sanctum, Facades, `app()`, Mix/Vite Laravel, etc.
+
+## Camadas
+
+```
+public/index.php → bootstrap → Dispatcher(routes.php)
+  → Middleware (auth / permission) → Controller → Service → Model (PDO) → Twig
+```
+
+- Controllers finos; regras de negócio em `src/Services/`
+- Acesso a dados em `src/Models/` via PDO (sem ORM)
+- Front controller **somente** em `public/index.php`; assets em `public/assets/`
+- Rotas em `routes.php` (handlers `Controller@method` ou `auth:Controller@method:permission.slug`)
+
+## Segurança
+
+- CSRF em todo POST (`csrf_token` + `validate_csrf()`)
+- Sessão: httponly, samesite=Lax, secure em HTTPS
+- Senhas: `password_hash` / `password_verify`
+- Twig com autoescape; não vazar dados sensíveis em logs/views
+
+## Idioma e commits
+
+- Respostas ao usuário em português
+- Commits: Conventional Commits em português; sem Co-authored-by do Cursor

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 $basePath = __DIR__;
 
 require $basePath . '/vendor/autoload.php';

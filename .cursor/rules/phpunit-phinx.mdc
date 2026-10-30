@@ -1,0 +1,35 @@
+---
+description: PHPUnit 10 e migrations Phinx via Docker
+globs: tests/**/*.php,database/**/*,phpunit.xml,phinx.php
+alwaysApply: false
+---
+
+# Testes e migrations
+
+Base: [PHPUnit 10](https://docs.phpunit.de/en/10.5/), [Phinx](https://book.cakephp.org/phinx/0/en/index.html).
+
+## PHPUnit
+
+- Suítes: `tests/Unit`, `tests/Feature` (`phpunit.xml`)
+- Preferir testes **sem** banco e sem `.env` (como o README descreve)
+- Namespace: `Tests\` → `tests/`
+
+```bash
+docker compose -f compose.yaml -f compose.dev.yaml run --rm server ./vendor/bin/phpunit
+docker build --target test .
+```
+
+## Phinx
+
+- Migrations PHP em `database/migrations/`
+- Seeds: SQL em `database/seeds/`; admin em `database/seed_admin.php`
+- Ambientes: `development` / `production` em `phinx.php` (mesmas env vars do app)
+
+```bash
+docker compose -f compose.yaml -f compose.dev.yaml exec server vendor/bin/phinx migrate -e development
+docker compose -f compose.yaml -f compose.dev.yaml exec -T db \
+  psql -U postgres -d template_admin < database/seeds/001_roles_permissions_admin.sql
+docker compose -f compose.yaml -f compose.dev.yaml exec server php database/seed_admin.php
+```
+
+- Não versionar dumps com senhas; seeds de demo (`admin@example.com`) só para bootstrap documentado

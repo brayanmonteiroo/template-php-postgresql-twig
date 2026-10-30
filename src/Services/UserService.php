@@ -51,6 +51,11 @@ class UserService
         return $this->roleModel->listAll();
     }
 
+    public function getRoleIdsByUserId(int $id): array
+    {
+        return array_column($this->userModel->getRolesByUserId($id), 'id');
+    }
+
     public function createUser(array $data): array
     {
         $errors = $this->validateUserData($data, null);

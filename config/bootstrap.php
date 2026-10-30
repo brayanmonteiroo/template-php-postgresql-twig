@@ -9,6 +9,7 @@ use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\AuthService;
+use App\Services\DashboardService;
 use App\Services\PermissionService;
 use App\Services\RoleService;
 use App\Services\UserService;
@@ -83,6 +84,7 @@ $authService = new AuthService($userModel);
 $permissionService = new PermissionService($userModel, $authService);
 $userService = new UserService($userModel, $roleModel);
 $roleService = new RoleService($roleModel, $permissionModel);
+$dashboardService = new DashboardService($userModel, $roleModel, $permissionModel);
 
 if (!isset($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -108,6 +110,7 @@ $container = [
     'roleModel' => $roleModel,
     'permissionModel' => $permissionModel,
     'roleService' => $roleService,
+    'dashboardService' => $dashboardService,
     'csrf_token' => $_SESSION['csrf_token'],
     'middlewares' => [
         'auth' => fn (array $c) => AuthMiddleware::run($c),

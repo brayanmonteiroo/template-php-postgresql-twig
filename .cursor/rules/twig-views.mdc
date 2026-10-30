@@ -1,0 +1,36 @@
+---
+description: Templates Twig 3 SSR (layout, autoescape, CSRF)
+globs: views/**/*.twig
+alwaysApply: false
+---
+
+# Views Twig 3
+
+Base: [Twig 3 docs](https://twig.symfony.com/doc/3.x/).
+
+## Estrutura
+
+- Páginas autenticadas estendem `layout.twig` e preenchem blocos (`title`, `content`, etc.)
+- Login e páginas de erro (`views/auth/`, `views/errors/`) usam `auth/layout.twig` (layout dedicado, sem sidebar)
+- Partials em `views/partials/` (header, sidebar, alerts, footer)
+- Organizar por recurso: `views/users/`, `views/roles/`, `views/auth/`, …
+
+```twig
+{# ✅ #}
+{% extends 'layout.twig' %}
+{% block content %}
+  {% include 'partials/alerts.twig' %}
+  ...
+{% endblock %}
+```
+
+## Segurança e dados
+
+- Autoescape HTML está ativo — **não** usar `|raw` com input de usuário
+- Forms POST: campo hidden `csrf_token` com `{{ csrf_token }}`
+- Variáveis globais típicas: `user`, `permissions`, `csrf_token`, `flash_messages`
+
+## Front-end
+
+- AdminLTE 4 local em `public/assets/adminlte/` — sem CDN
+- Não introduzir frameworks JS pesados; manter Bootstrap/AdminLTE do template

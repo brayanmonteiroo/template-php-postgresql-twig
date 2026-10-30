@@ -31,7 +31,7 @@ class ProfileController
             return;
         }
         unset($full['password_hash']);
-        $full['role_ids'] = array_column($this->container['userModel']->getRolesByUserId((int) $full['id']), 'id');
+        $full['role_ids'] = $this->userService()->getRoleIdsByUserId((int) $full['id']);
         $twig = $this->container['twig'];
         echo $twig->render('profile/edit.twig', [
             'user' => $full,
@@ -61,15 +61,15 @@ class ProfileController
             'email' => trim($_POST['email'] ?? ''),
             'password' => $_POST['password'] ?? '',
             'status' => $full['status'],
-            'role_ids' => array_column($this->container['userModel']->getRolesByUserId($id), 'id'),
+            'role_ids' => $this->userService()->getRoleIdsByUserId($id),
         ];
         $result = $this->userService()->updateUser($id, $data);
         if ($result['success']) {
-            $_SESSION['user_data'] = [
+            $this->container['authService']->refreshSessionUser([
                 'id' => $id,
                 'name' => $data['name'],
                 'email' => $data['email'],
-            ];
+            ]);
             flash_set('success', 'Perfil atualizado com sucesso.');
             redirect('/profile');
             return;

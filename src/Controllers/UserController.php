@@ -88,7 +88,7 @@ class UserController
             return;
         }
         unset($user['password_hash']);
-        $user['role_ids'] = array_column($this->container['userModel']->getRolesByUserId($id), 'id');
+        $user['role_ids'] = $this->userService()->getRoleIdsByUserId($id);
         $twig = $this->container['twig'];
         echo $twig->render('users/form.twig', [
             'user' => $user,

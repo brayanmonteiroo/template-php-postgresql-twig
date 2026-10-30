@@ -1,0 +1,36 @@
+---
+description: Docker PHP oficial (Apache multi-stage, Compose, secrets)
+globs: Dockerfile,compose*.yaml,docker/**/*,.dockerignore,db/*
+alwaysApply: false
+---
+
+# Docker runtime
+
+Base: [Docker PHP guide](https://docs.docker.com/guides/php/).
+
+## Imagem
+
+- Multi-stage: `prod-deps` / `dev-deps` / `base` / `development` / `test` / `final`
+- Runtime: **`php:8.5.12-apache`** (patch CVE-2026-109618/109619) — não trocar por tag flutuante (`8.5-apache`, `latest`) sem motivo
+- Extensão: `pdo` + `pdo_pgsql`; DocumentRoot Apache em `/var/www/html/public`
+- Produção: `php.ini-production`, `USER www-data`, target `final`
+
+## Compose
+
+```bash
+# Local
+docker compose -f compose.yaml -f compose.dev.yaml up --build -d
+
+# VPS
+docker compose -f compose.yaml -f compose.prod.yaml up --build -d
+```
+
+- DB: **`postgres:18.6-alpine`**; volume em `/var/lib/postgresql` (não `.../data`)
+- Secret: `db/password.txt` (gitignore); versionar só `db/password.example.txt`
+- App lê `DB_PASSWORD_FILE=/run/secrets/db-password`; serviço `db` usa `POSTGRES_PASSWORD_FILE`
+- Em prod: não publicar porta do Postgres no host
+
+## Não fazer
+
+- Reintroduzir Nginx+FPM/Coolify/Nixpacks como caminho principal
+- `composer install` obrigatório no host (deps no build da imagem)
