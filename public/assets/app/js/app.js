@@ -154,10 +154,40 @@ function initFlashToasts() {
   });
 }
 
+function initPasswordToggles() {
+  document.querySelectorAll("[data-password-toggle]").forEach((btn) => {
+    if (!(btn instanceof HTMLButtonElement)) {
+      return;
+    }
+    btn.addEventListener("click", () => {
+      const targetId = btn.getAttribute("aria-controls");
+      const input = targetId
+        ? document.getElementById(targetId)
+        : btn.parentElement?.querySelector("input");
+      if (!(input instanceof HTMLInputElement)) {
+        return;
+      }
+      const show = input.type === "password";
+      input.type = show ? "text" : "password";
+      btn.setAttribute(
+        "aria-label",
+        show ? "Ocultar senha" : "Mostrar senha"
+      );
+      btn.setAttribute("title", show ? "Ocultar senha" : "Mostrar senha");
+      const icon = btn.querySelector("[data-password-toggle-icon]");
+      if (icon) {
+        icon.classList.toggle("bi-eye", !show);
+        icon.classList.toggle("bi-eye-slash", show);
+      }
+    });
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
   initSidebarCollapse();
   markActiveNav();
   initConfirmDialog();
   initFlashToasts();
+  initPasswordToggles();
 });

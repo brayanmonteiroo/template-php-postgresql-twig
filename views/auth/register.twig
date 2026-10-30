@@ -18,10 +18,10 @@
 
     <section class="auth-panel">
         <div class="auth-card">
-            <div class="d-flex justify-content-between align-items-start mb-3">
+            <div class="auth-card__head">
                 <div>
                     <h2>Registrar</h2>
-                    <p class="lead mb-0">Preencha seus dados para criar a conta.</p>
+                    <p class="lead">Preencha seus dados para criar a conta.</p>
                 </div>
                 <button type="button" class="app-icon-btn" data-theme-toggle aria-label="Alternar tema" title="Alternar tema">
                     <i class="bi bi-moon-stars" data-theme-icon aria-hidden="true"></i>
@@ -42,14 +42,19 @@
                 </div>
                 <div>
                     <label class="form-label" for="password">Senha</label>
-                    <input type="password" class="form-control {{ errors.password is defined ? 'is-invalid' : '' }}" id="password" name="password" required autocomplete="new-password" minlength="8">
-                    {% if errors.password is defined %}<div class="invalid-feedback">{{ errors.password }}</div>{% endif %}
+                    {% include 'partials/password-input.twig' with {
+                        id: 'password',
+                        name: 'password',
+                        required: true,
+                        autocomplete: 'new-password',
+                        error: errors.password|default(null)
+                    } only %}
                     <div class="form-text">Mínimo de 8 caracteres.</div>
                 </div>
                 <button type="submit" class="btn-solid theme-primary w-100">Criar conta</button>
             </form>
 
-            <p class="text-secondary small mt-3 mb-0 text-center">
+            <p class="auth-card__footer mb-0">
                 Já tem conta?
                 <a href="/login">Entrar</a>
             </p>

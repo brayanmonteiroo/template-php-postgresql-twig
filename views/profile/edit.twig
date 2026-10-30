@@ -17,8 +17,13 @@
     </div>
     <div>
         <label class="form-label" for="password">Nova senha <span class="text-secondary fw-normal">(deixe em branco para manter)</span></label>
-        <input type="password" class="form-control {{ errors.password is defined ? 'is-invalid' : '' }}" id="password" name="password" minlength="8" autocomplete="new-password">
-        {% if errors.password is defined %}<div class="invalid-feedback">{{ errors.password }}</div>{% endif %}
+        {% include 'partials/password-input.twig' with {
+            id: 'password',
+            name: 'password',
+            required: false,
+            autocomplete: 'new-password',
+            error: errors.password|default(null)
+        } only %}
         <div class="form-text">Deixe em branco para manter. Se alterar, use no mínimo 8 caracteres.</div>
     </div>
     <div class="d-flex flex-wrap gap-2">
