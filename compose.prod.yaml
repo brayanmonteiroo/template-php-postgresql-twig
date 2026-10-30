@@ -1,0 +1,17 @@
+# Production / VPS overrides.
+# Usage: docker compose -f compose.yaml -f compose.prod.yaml up --build -d
+
+services:
+  server:
+    build:
+      target: final
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "0"
+      # Set APP_URL to your public URL on the VPS (e.g. https://example.com).
+      APP_URL: ${APP_URL:-http://localhost:8080}
+    restart: unless-stopped
+
+  db:
+    # Do not publish Postgres on the host in production — internal network only.
+    restart: unless-stopped

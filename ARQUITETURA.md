@@ -6,8 +6,9 @@ Este documento descreve a arquitetura do template administrativo PHP + PostgreSQ
 
 A aplicação segue um **MVC enxuto** com front controller, roteamento por FastRoute, camada de **Services** para regras de negócio e **Models** para acesso a dados. Autenticação e autorização (RBAC) são feitas por middlewares aplicados às rotas. A view usa Twig e o layout é baseado no AdminLTE 4.
 
-- **Stack:** PHP 8.4+, PostgreSQL, Twig 3, FastRoute, Phinx (migrations).
+- **Stack:** PHP 8.5+ (imagem `php:8.5.12-apache`), PostgreSQL 18, Twig 3, FastRoute, Phinx (migrations).
 - **Padrões:** Front Controller, Dependency Injection (container simples), Repository-style nos Models.
+- **Runtime:** Docker multi-stage alinhado à [guia oficial Docker para PHP](https://docs.docker.com/guides/php/) (Apache/`mod_php`).
 
 ---
 
@@ -17,7 +18,7 @@ A aplicação segue um **MVC enxuto** com front controller, roteamento por FastR
 Cliente (navegador)
        |
        v
-  Nginx (document root: public/)
+  Apache (document root: public/)
        |
        v
   public/index.php  (front controller)
@@ -71,8 +72,12 @@ project/
 │   └── ...                 # Por recurso (users, roles, permissions, etc.)
 ├── routes.php             # Definição das rotas (FastRoute)
 ├── phinx.php              # Config do Phinx (envs development/production)
-├── nginx.template.conf    # Nginx para deploy (Coolify/Nixpacks)
-└── docker/                # Docker local (Nginx, PHP-FPM)
+├── Dockerfile             # Multi-stage (deps, development, test, final)
+├── compose.yaml           # Stack base (server + Postgres + secrets)
+├── compose.dev.yaml       # Overrides locais (target development + Watch)
+├── compose.prod.yaml      # Overrides VPS (target final)
+├── db/password.example.txt
+└── docker/apache/         # VirtualHost (DocumentRoot public/)
 ```
 
 ---
@@ -198,11 +203,11 @@ Um usuário tem uma ou mais roles; cada role tem várias permissions. O Permissi
 
 ## Configuração e ambiente
 
-- **Variáveis de ambiente (`.env`):**
+- **Variáveis de ambiente (Compose / `.env`):**
   - App: APP_ENV, APP_DEBUG, APP_URL, SESSION_LIFETIME.
-  - Banco: DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD.
-- **Config:** `config/app.php` (env, debug, url, session_lifetime). `config/database.php` monta o DSN e retorna o PDO.
-- **Ambientes:** development (Docker local, DB_NAME pode ser template_admin) e production (Coolify, DB_NAME frequentemente postgres). Phinx e aplicação usam o mesmo .env do ambiente.
+  - Banco: DB_HOST, DB_PORT, DB_NAME, DB_USER; senha via `DB_PASSWORD_FILE` (secret Docker) ou `DB_PASSWORD`.
+- **Config:** `config/app.php` (env, debug, url, session_lifetime). `config/database.php` monta o DSN e retorna o PDO (lê secret se `DB_PASSWORD_FILE` estiver definido).
+- **Ambientes:** development (`compose.dev.yaml`, target `development`) e production (`compose.prod.yaml`, target `final`). Phinx usa `development` / `production`.
 
 ---
 
@@ -210,18 +215,18 @@ Um usuário tem uma ou mais roles; cada role tem várias permissions. O Permissi
 
 ### Local (Docker)
 
-- `docker-compose.yml` sobe serviços: app (PHP-FPM), nginx, postgres.
-- Document root do Nginx: `public/` (mapeado no volume). Config do Nginx em `docker/nginx/app.conf`.
-- Aplicação acessível em http://localhost:8080. Migrations e seeds conforme README (exec no container app/postgres).
+- `compose.yaml` + `compose.dev.yaml`: serviço `server` (PHP 8.5.12 + Apache, target `development`) e `db` (`postgres:18.6-alpine`).
+- Document root Apache: `public/` (`docker/apache/000-default.conf`).
+- Secret da senha: `db/password.txt` (não versionado; use `db/password.example.txt` como modelo).
+- Aplicação em http://localhost:8080. Migrations e seeds conforme README.
+- Compose Watch sincroniza `src/`, `views/`, `public/`, etc.
 
-### VPS (Coolify / Nixpacks)
+### VPS (Docker Compose)
 
-- Build via Nixpacks (provider PHP): detecta `composer.json` e/ou `index.php`, instala dependências, usa `nginx.template.conf` da raiz do projeto se existir.
-- O `nginx.template.conf` na raiz define document root `/app/public`, `try_files` para o front controller e usa `${PORT}` e `$!{nginx}` para o script de start do Nixpacks.
-- Container único: Nginx + PHP-FPM; o proxy do Coolify encaminha para a PORT do container.
-- Migrations: executadas no pós-deploy (comando configurado no Coolify). Seed SQL e `php database/seed_admin.php` devem ser rodados manualmente (ver README, seção “Deploy na VPS (Coolify)”).
-
-O arquivo `docker/nginx/app.conf` é apenas para o ambiente Docker local; na VPS vale o `nginx.template.conf` da raiz.
+- `compose.yaml` + `compose.prod.yaml`: target `final` (`php.ini-production`, `USER www-data`, deps sem `--dev`).
+- Postgres sem porta publicada no host; TLS no reverse proxy da VPS.
+- Após o primeiro deploy: migrate + seed SQL + `php database/seed_admin.php` (ver README).
+- Mantenha a tag PHP do `Dockerfile` atualizada após advisories de segurança.
 
 ---
 

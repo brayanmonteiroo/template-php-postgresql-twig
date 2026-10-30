@@ -1,0 +1,46 @@
+# Local development overrides (Compose Watch + development image target).
+# Usage: docker compose -f compose.yaml -f compose.dev.yaml up --build
+#        docker compose -f compose.yaml -f compose.dev.yaml watch
+
+services:
+  server:
+    build:
+      target: development
+    environment:
+      APP_ENV: development
+      APP_DEBUG: "1"
+      APP_URL: http://localhost:8080
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /var/www/html/src
+        - action: sync
+          path: ./views
+          target: /var/www/html/views
+        - action: sync
+          path: ./public
+          target: /var/www/html/public
+        - action: sync
+          path: ./config
+          target: /var/www/html/config
+        - action: sync
+          path: ./database
+          target: /var/www/html/database
+        - action: sync
+          path: ./routes.php
+          target: /var/www/html/routes.php
+        - action: sync
+          path: ./phinx.php
+          target: /var/www/html/phinx.php
+        - action: sync
+          path: ./tests
+          target: /var/www/html/tests
+        - action: rebuild
+          path: ./composer.json
+        - action: rebuild
+          path: ./composer.lock
+
+  db:
+    ports:
+      - "5432:5432"

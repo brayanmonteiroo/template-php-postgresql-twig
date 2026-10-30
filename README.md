@@ -1,66 +1,101 @@
 # Template administrativo PHP + PostgreSQL + Twig
 
-Template com login, RBAC (roles e permissões), MVC + Services, FastRoute, Twig e AdminLTE. Ambiente de execução: **Docker** (Nginx + PHP-FPM + PostgreSQL).
+Template com login, RBAC (roles e permissões), MVC + Services, FastRoute, Twig e AdminLTE. Ambiente de execução: **Docker** (Apache + PHP 8.5 + PostgreSQL), alinhado à [guia oficial Docker para PHP](https://docs.docker.com/guides/php/).
 
 ## Requisitos
 
 - Docker e Docker Compose
 
-## Instalação e execução
+## Versões pinadas (segurança)
+
+| Componente | Imagem / requisito |
+|------------|--------------------|
+| PHP + Apache | `php:8.5.12-apache` (patch para CVE-2026-109618 / CVE-2026-109619) |
+| PostgreSQL | `postgres:18.6-alpine` |
+| Composer (build) | `composer:2` |
+| App | `php >= 8.5` no `composer.json` |
+
+Após novos advisories do PHP, atualize a tag no `Dockerfile`, reconstrua a imagem e faça redeploy na VPS. Evite tags flutuantes (`8.5-apache`, `latest`).
+
+## Instalação e execução (local)
 
 ```bash
-cp .env.example .env
-composer install
-docker compose up -d
+cp db/password.example.txt db/password.txt
+# Edite db/password.txt com uma senha forte (uma linha, sem linhas extras).
+
+docker compose -f compose.yaml -f compose.dev.yaml up --build -d
 ```
 
-O `.env.example` já está configurado para o Docker (DB_HOST=postgres, etc.). A base de front (AdminLTE 4) já está em `public/assets/adminlte/`; não é preciso rodar nenhum script de cópia. A variável **APP_KEY** no `.env` está reservada para uso futuro (ex.: assinatura de cookies ou links); pode ficar vazia.
+O Composer roda **dentro do build** da imagem (não é necessário `composer install` no host).
 
-**Antes do primeiro login**, é obrigatório rodar as migrations e o seed (veja seção "Banco de dados" abaixo).
+Acesso: http://localhost:8080
+
+Para sincronizar alterações de código automaticamente (Compose Watch):
+
+```bash
+docker compose -f compose.yaml -f compose.dev.yaml watch
+```
+
+A variável **APP_KEY** no `.env` (se usar) está reservada para uso futuro; pode ficar vazia. Em Docker, as variáveis de ambiente vêm do Compose; a senha do banco vem do secret `db/password.txt`.
+
+**Antes do primeiro login**, rode as migrations e o seed (seção abaixo).
 
 ## Banco de dados
 
-Migrations são gerenciadas pelo **Phinx**. O banco já é criado pelo Docker Compose.
+Migrations com **Phinx**. O banco `template_admin` é criado pelo serviço Postgres do Compose.
 
-Com os containers no ar, rode as migrations e o seed:
+Com os containers no ar:
 
 ```bash
-docker compose exec app vendor/bin/phinx migrate -e development
-docker compose exec -T postgres psql -U postgres -d template_admin < database/seeds/001_roles_permissions_admin.sql
-docker compose exec app php database/seed_admin.php
+docker compose -f compose.yaml -f compose.dev.yaml exec server vendor/bin/phinx migrate -e development
+docker compose -f compose.yaml -f compose.dev.yaml exec -T db psql -U postgres -d template_admin < database/seeds/001_roles_permissions_admin.sql
+docker compose -f compose.yaml -f compose.dev.yaml exec server php database/seed_admin.php
 ```
 
 Usuário inicial: `admin@example.com` / `admin123`
 
-**Comandos Phinx úteis** (rodar com `docker compose exec app vendor/bin/phinx ...` ou, fora do Docker, `vendor/bin/phinx ...` com `.env` configurado):
-
-- `phinx migrate -e development` – aplica migrations pendentes
-- `phinx rollback -e development` – desfaz a última migration
-- `phinx status -e development` – lista migrations e status
-- `phinx create NomeDaMigration` – gera nova migration em `database/migrations/`
-
-Se o projeto já estava instalado antes de incluir as telas de Papéis e Permissões, rode novamente o seed para criar as permissões `role.*` e `permission.*` e atribuí-las ao admin:
+**Comandos Phinx úteis:**
 
 ```bash
-docker compose exec -T postgres psql -U postgres -d template_admin < database/seeds/001_roles_permissions_admin.sql
+docker compose -f compose.yaml -f compose.dev.yaml exec server vendor/bin/phinx migrate -e development
+docker compose -f compose.yaml -f compose.dev.yaml exec server vendor/bin/phinx rollback -e development
+docker compose -f compose.yaml -f compose.dev.yaml exec server vendor/bin/phinx status -e development
+docker compose -f compose.yaml -f compose.dev.yaml exec server vendor/bin/phinx create NomeDaMigration
 ```
 
-## Acesso
+## Produção (VPS)
 
-http://localhost:8080
+```bash
+cp db/password.example.txt db/password.txt
+# Defina uma senha forte em db/password.txt
+
+export APP_URL=https://seu-dominio.com
+docker compose -f compose.yaml -f compose.prod.yaml up --build -d
+```
+
+- Imagem alvo: estágio `final` (dependências sem `--dev`, `php.ini-production`, usuário `www-data`).
+- Postgres **não** publica porta no host (só rede interna do Compose).
+- TLS fica no reverse proxy da VPS (Caddy, Traefik, Nginx do host, etc.).
+
+Após o primeiro deploy, rode migrate + seeds **uma vez** (ajuste o ambiente Phinx se usar `production`):
+
+```bash
+docker compose -f compose.yaml -f compose.prod.yaml exec server vendor/bin/phinx migrate -e production
+docker compose -f compose.yaml -f compose.prod.yaml exec -T db psql -U postgres -d template_admin < database/seeds/001_roles_permissions_admin.sql
+docker compose -f compose.yaml -f compose.prod.yaml exec server php database/seed_admin.php
+```
 
 ## Estrutura
 
-- `docker/` – config do servidor (Nginx, PHP-FPM)
+- `Dockerfile` – multi-stage (prod-deps, dev-deps, base, development, test, final)
+- `compose.yaml` / `compose.dev.yaml` / `compose.prod.yaml` – stack Docker
+- `docker/apache/` – VirtualHost com document root em `public/`
+- `db/password.example.txt` – modelo do secret do Postgres (copie para `db/password.txt`)
 - `public/` – ponto de entrada (`index.php`) e assets
-- `src/Controllers/` – controllers
-- `src/Models/` – acesso a dados
-- `src/Services/` – regras de negócio (Auth, Permission, User, Role)
-- `src/Middleware/` – auth e permissão
-- `src/Core/` – dispatcher (FastRoute + middlewares)
-- `config/` – app e database
+- `src/` – Controllers, Models, Services, Middleware, Core
 - `views/` – templates Twig
-- `database/migrations/` – migrations Phinx (PHP); `database/seeds/` – SQL de dados iniciais
+- `config/` – app e database
+- `database/migrations/` – Phinx; `database/seeds/` – SQL / script admin
 - `tests/` – PHPUnit
 
 ## Rotas
@@ -70,75 +105,39 @@ http://localhost:8080
 - POST `/logout` – sair
 - GET `/`, `/dashboard` – dashboard (autenticado)
 - GET `/profile`, POST `/profile` – editar próprio perfil (nome, email, senha)
-- GET/POST `/users` – listar (com paginação, busca e ordenação) / criar (permissão `user.view` / `user.create`)
+- GET/POST `/users` – listar / criar (`user.view` / `user.create`)
 - GET `/users/{id}/edit`, POST `/users/{id}` – editar (`user.edit`)
-- POST `/users/{id}/delete` – excluir (`user.delete`); não é possível excluir a si mesmo nem o último admin
+- POST `/users/{id}/delete` – excluir (`user.delete`)
 - GET/POST `/roles` – listar/criar papéis (`role.view` / `role.create`)
-- GET `/roles/{id}/edit`, POST `/roles/{id}`, POST `/roles/{id}/delete` – editar/excluir papéis (`role.edit` / `role.delete`)
-- GET `/permissions`, POST `/permissions` – visualizar e gerenciar permissões por papel (`permission.view` / `permission.manage`)
+- GET `/roles/{id}/edit`, POST `/roles/{id}`, POST `/roles/{id}/delete` – editar/excluir (`role.edit` / `role.delete`)
+- GET `/permissions`, POST `/permissions` – permissões por papel (`permission.view` / `permission.manage`)
 
 ## Front-end (AdminLTE 4)
 
-A base do front está em `public/assets/adminlte/` (AdminLTE 4, Bootstrap 5, Bootstrap Icons, OverlayScrollbars, Source Sans 3). Tudo é servido localmente, sem CDN. O sistema é construído em cima dessa pasta; a pasta original do AdminLTE (`AdminLTE-4.0.0-rc4`) pode ser removida após a configuração inicial.
-
-## Deploy na VPS (Coolify)
-
-As migrations são executadas automaticamente no pós-deploy (comando configurado no Coolify). Após o primeiro deploy, é preciso rodar o seed de roles/permissões e o script do usuário admin **uma vez**:
-
-1. **Seed SQL (roles e permissões)** – O arquivo `database/seeds/001_roles_permissions_admin.sql` existe apenas no container da **aplicação** (não no container do PostgreSQL). Na VPS, pelo terminal do **host** (SSH), use o nome completo dos containers (`docker ps --format '{{.Names}}'`) e o nome do banco definido em **DB_NAME** no Coolify (geralmente `postgres`):
-
-   ```bash
-   docker exec <CONTAINER_APP> cat /app/database/seeds/001_roles_permissions_admin.sql | docker exec -i <CONTAINER_POSTGRES> psql -U postgres -d <DB_NAME>
-   ```
-
-   Exemplo (substitua pelos nomes reais que aparecem no `docker ps`):
-
-   ```bash
-   docker exec a7c08owow0h0k830o0c8s874-111111111 cat /app/database/seeds/001_roles_permissions_admin.sql | docker exec -i r0wswgw0ss4okk8oggw0csks psql -U postgres -d postgres
-   ```
-   Os valores acima não são reais, apenas exemplos.
-
-2. **Usuário admin** – No Coolify, abra o **Terminal** da aplicação (conectado ao container da app, onde existe `/app`). Rode:
-
-   ```bash
-   php database/seed_admin.php
-   ```
-
-   Usuário inicial: `admin@example.com` / `admin123`
-
----
+A base do front está em `public/assets/adminlte/` (AdminLTE 4, Bootstrap 5, Bootstrap Icons, OverlayScrollbars, Source Sans 3). Servido localmente, sem CDN.
 
 ## Testes
 
-Os testes usam **PHPUnit** e estão em `tests/Unit` (Services) e `tests/Feature` (Dispatcher/rotas). Não dependem de banco nem de `.env`.
+Os testes usam **PHPUnit** (`tests/Unit`, `tests/Feature`). Não dependem de banco nem de `.env`.
 
-**Rodar todos os testes** (na raiz do projeto, após `composer install`):
-
-```bash
-./vendor/bin/phpunit
-```
-
-**Com Docker** (dentro do container da aplicação):
+**Com Docker (desenvolvimento):**
 
 ```bash
-docker compose exec app ./vendor/bin/phpunit
+docker compose -f compose.yaml -f compose.dev.yaml run --build --rm server ./vendor/bin/phpunit
 ```
 
-**Rodar só uma suíte:**
+**No build da imagem (estágio `test`, como na guia Docker):**
 
 ```bash
-./vendor/bin/phpunit --testsuite Unit
-./vendor/bin/phpunit --testsuite Feature
+docker build -t template-admin-test --progress=plain --no-cache --target test .
 ```
 
-**Rodar um arquivo ou classe específica:**
+**Suítes / arquivos:**
 
 ```bash
-./vendor/bin/phpunit tests/Unit/Services/UserServiceTest.php
-./vendor/bin/phpunit tests/Feature/DispatcherTest.php
+docker compose -f compose.yaml -f compose.dev.yaml run --rm server ./vendor/bin/phpunit --testsuite Unit
+docker compose -f compose.yaml -f compose.dev.yaml run --rm server ./vendor/bin/phpunit --testsuite Feature
+docker compose -f compose.yaml -f compose.dev.yaml run --rm server ./vendor/bin/phpunit tests/Unit/Services/UserServiceTest.php
 ```
 
-A configuração está em `phpunit.xml` (bootstrap em `vendor/autoload.php`, suítes Unit e Feature).
-
-
-**Observação:** O arquivo `nginx.template.conf` na raiz do projeto é usado apenas em **hospedagem** (Coolify/Nixpacks, VPS etc.). O Nixpacks o utiliza no deploy para configurar o Nginx com document root em `public` e fallback para o front controller. Em desenvolvimento local, o Nginx usado é o de `docker/nginx/app.conf`.
+Configuração em `phpunit.xml`.
