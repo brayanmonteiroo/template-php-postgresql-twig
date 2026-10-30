@@ -18,13 +18,19 @@ Base: [Docker PHP guide](https://docs.docker.com/guides/php/).
 ## Compose
 
 ```bash
-# Local
+# Local com live reload (Twig/PHP/CSS/JS) — preferir --watch
+docker compose -f compose.yaml -f compose.dev.yaml up --build --watch
+
+# Local detached (bind mounts do compose.dev já sincronizam o código)
 docker compose -f compose.yaml -f compose.dev.yaml up --build -d
 
 # VPS
 docker compose -f compose.yaml -f compose.prod.yaml up --build -d
 ```
 
+- Dev **exige** `compose.dev.yaml`: bind mounts (`src`, `views`, `public`, …) + `develop.watch` ([Compose Watch](https://docs.docker.com/compose/how-tos/file-watch/))
+- Volumes com `:z` (SELinux/Fedora)
+- Sem `compose.dev.yaml` a imagem fica “congelada” (parecia precisar de `docker cp`)
 - DB: **`postgres:18.6-alpine`**; volume em `/var/lib/postgresql` (não `.../data`)
 - Secret: `db/password.txt` (gitignore); versionar só `db/password.example.txt`
 - App lê `DB_PASSWORD_FILE=/run/secrets/db-password`; serviço `db` usa `POSTGRES_PASSWORD_FILE`
@@ -34,3 +40,4 @@ docker compose -f compose.yaml -f compose.prod.yaml up --build -d
 
 - Reintroduzir Nginx+FPM/Coolify/Nixpacks como caminho principal
 - `composer install` obrigatório no host (deps no build da imagem)
+- `docker cp` para iterar front/views em desenvolvimento

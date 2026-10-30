@@ -19,10 +19,19 @@ Após novos advisories do PHP, atualize a tag no `Dockerfile`, reconstrua a imag
 
 ## Instalação e execução (local)
 
+Sempre use **os dois arquivos** (`compose.yaml` + `compose.dev.yaml`). Só o `compose.yaml` sobe imagem de produção **sem** bind mounts — aí o front/Twig não atualizam e parece que precisa de `docker cp`.
+
 ```bash
 cp db/password.example.txt db/password.txt
 # Edite db/password.txt com uma senha forte (uma linha, sem linhas extras).
 
+# Recomendado (Compose Watch + logs): editar Twig/JS/CSS/PHP e ver na hora
+docker compose -f compose.yaml -f compose.dev.yaml up --build --watch
+```
+
+Alternativa em background (também com live reload via **bind mounts**):
+
+```bash
 docker compose -f compose.yaml -f compose.dev.yaml up --build -d
 ```
 
@@ -30,11 +39,14 @@ O Composer roda **dentro do build** da imagem (não é necessário `composer ins
 
 Acesso: http://localhost:8080
 
-Para sincronizar alterações de código automaticamente (Compose Watch):
+### Live reload (dev)
 
-```bash
-docker compose -f compose.yaml -f compose.dev.yaml watch
-```
+| Mecanismo | O que faz |
+|-----------|-----------|
+| **Bind mounts** (`compose.dev.yaml` → `volumes`) | Host e container compartilham `src/`, `views/`, `public/`, etc. Save = Apache/Twig já leem o arquivo novo ([bind mounts](https://docs.docker.com/engine/storage/bind-mounts/)). |
+| **Compose Watch** (`develop.watch` + `up --watch`) | Sync/rebuild automático conforme a [doc Watch](https://docs.docker.com/compose/how-tos/file-watch/). Rebuild se mudar `composer.json` / `Dockerfile`. |
+
+Não use `docker cp` no dia a dia de desenvolvimento.
 
 A variável **APP_KEY** no `.env` (se usar) está reservada para uso futuro; pode ficar vazia. Em Docker, as variáveis de ambiente vêm do Compose; a senha do banco vem do secret `db/password.txt`.
 

@@ -1,6 +1,12 @@
-# Local development overrides (Compose Watch + development image target).
-# Usage: docker compose -f compose.yaml -f compose.dev.yaml up --build
-#        docker compose -f compose.yaml -f compose.dev.yaml watch
+# Local development overrides (bind mounts + Compose Watch).
+# Docs: https://docs.docker.com/compose/how-tos/file-watch/
+#       https://docs.docker.com/engine/storage/bind-mounts/
+#
+# Subir com live reload (recomendado — um comando só):
+#   docker compose -f compose.yaml -f compose.dev.yaml up --build --watch
+#
+# Ou detached (bind mounts já refletem Twig/PHP/CSS/JS no save):
+#   docker compose -f compose.yaml -f compose.dev.yaml up --build -d
 
 services:
   server:
@@ -10,45 +16,58 @@ services:
       APP_ENV: development
       APP_DEBUG: "1"
       APP_URL: http://localhost:8080
-    # Bind mounts so edits apply without compose watch.
+    # Bind mounts = hot reload para PHP/Twig/assets (Apache lê o host).
+    # :z = SELinux (Fedora) — necessário para o container acessar os dirs.
     volumes:
-      - ./src:/var/www/html/src
-      - ./views:/var/www/html/views
-      - ./public:/var/www/html/public
-      - ./config:/var/www/html/config
-      - ./database:/var/www/html/database
-      - ./routes.php:/var/www/html/routes.php
-      - ./phinx.php:/var/www/html/phinx.php
+      - ./src:/var/www/html/src:z
+      - ./views:/var/www/html/views:z
+      - ./public:/var/www/html/public:z
+      - ./config:/var/www/html/config:z
+      - ./database:/var/www/html/database:z
+      - ./routes.php:/var/www/html/routes.php:z
+      - ./phinx.php:/var/www/html/phinx.php:z
+      - ./tests:/var/www/html/tests:z
     develop:
       watch:
-        - action: sync
-          path: ./src
+        # Sync da doc Compose Watch (complementa binds; útil com `up --watch`).
+        - path: ./src
           target: /var/www/html/src
-        - action: sync
-          path: ./views
+          action: sync
+          initial_sync: true
+        - path: ./views
           target: /var/www/html/views
-        - action: sync
-          path: ./public
+          action: sync
+          initial_sync: true
+        - path: ./public
           target: /var/www/html/public
-        - action: sync
-          path: ./config
+          action: sync
+          initial_sync: true
+        - path: ./config
           target: /var/www/html/config
-        - action: sync
-          path: ./database
+          action: sync
+          initial_sync: true
+        - path: ./database
           target: /var/www/html/database
-        - action: sync
-          path: ./routes.php
+          action: sync
+          initial_sync: true
+        - path: ./routes.php
           target: /var/www/html/routes.php
-        - action: sync
-          path: ./phinx.php
+          action: sync
+          initial_sync: true
+        - path: ./phinx.php
           target: /var/www/html/phinx.php
-        - action: sync
-          path: ./tests
+          action: sync
+          initial_sync: true
+        - path: ./tests
           target: /var/www/html/tests
-        - action: rebuild
-          path: ./composer.json
-        - action: rebuild
-          path: ./composer.lock
+          action: sync
+          initial_sync: true
+        - path: ./composer.json
+          action: rebuild
+        - path: ./composer.lock
+          action: rebuild
+        - path: ./Dockerfile
+          action: rebuild
 
   db:
     ports:

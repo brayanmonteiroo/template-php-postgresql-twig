@@ -1,5 +1,5 @@
 # Base Compose stack (Docker PHP guide pattern + PostgreSQL).
-# Local:  docker compose -f compose.yaml -f compose.dev.yaml up --build
+# Local:  docker compose -f compose.yaml -f compose.dev.yaml up --build --watch
 # Prod:   docker compose -f compose.yaml -f compose.prod.yaml up --build -d
 
 services:

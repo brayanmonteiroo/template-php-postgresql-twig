@@ -221,7 +221,7 @@ Um usuário tem uma ou mais roles; cada role tem várias permissions. O Permissi
 - Document root Apache: `public/` (`docker/apache/000-default.conf`).
 - Secret da senha: `db/password.txt` (não versionado; use `db/password.example.txt` como modelo).
 - Aplicação em http://localhost:8080. Migrations e seeds conforme README.
-- Compose Watch sincroniza `src/`, `views/`, `public/`, etc.
+- Live reload: **bind mounts** de `src/`, `views/`, `public/`, etc. + **Compose Watch** (`up --watch`; ver [doc](https://docs.docker.com/compose/how-tos/file-watch/)).
 
 ### VPS (Docker Compose)
 
