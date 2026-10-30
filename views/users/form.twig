@@ -25,7 +25,8 @@
         </div>
         <div>
             <label class="form-label" for="password">Senha{% if user %} <span class="text-secondary fw-normal">(deixe em branco para manter)</span>{% endif %}</label>
-            <input type="password" class="form-control {{ errors.password is defined ? 'is-invalid' : '' }}" id="password" name="password" {{ user ? '' : 'required' }}>
+            <input type="password" class="form-control {{ errors.password is defined ? 'is-invalid' : '' }}" id="password" name="password" {{ user ? '' : 'required' }} minlength="8" autocomplete="{{ user ? 'new-password' : 'new-password' }}">
+            {% if not user %}<div class="form-text">Mínimo de 8 caracteres.</div>{% endif %}
             {% if errors.password is defined %}<div class="invalid-feedback">{{ errors.password }}</div>{% endif %}
         </div>
         <div>

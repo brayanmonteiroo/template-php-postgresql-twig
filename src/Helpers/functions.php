@@ -16,7 +16,13 @@ function input_post(string $key, mixed $default = ''): mixed
     return is_string($value) ? trim($value) : $value;
 }
 
-function security_headers(): void
+function request_is_https(): bool
+{
+    return (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
+}
+
+function security_headers(?string $cspNonce = null): void
 {
     if (headers_sent()) {
         return;
@@ -24,6 +30,35 @@ function security_headers(): void
     header('X-Frame-Options: SAMEORIGIN');
     header('X-Content-Type-Options: nosniff');
     header('Referrer-Policy: strict-origin-when-cross-origin');
+
+    if ($cspNonce !== null && $cspNonce !== '') {
+        $nonce = preg_replace('/[^a-zA-Z0-9+\/=_-]/', '', $cspNonce) ?? '';
+        if ($nonce !== '') {
+            header(
+                "Content-Security-Policy: default-src 'self'; "
+                . "script-src 'self' 'nonce-{$nonce}'; "
+                . "style-src 'self' 'unsafe-inline'; "
+                . "img-src 'self' data:; "
+                . "base-uri 'self'; "
+                . "form-action 'self'; "
+                . "frame-ancestors 'self'"
+            );
+        }
+    }
+
+    $config = $GLOBALS['app_config'] ?? [];
+    if (request_is_https() && ($config['env'] ?? '') === 'production') {
+        header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+    }
+}
+
+function rotate_csrf_token(): string
+{
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    return $_SESSION['csrf_token'];
 }
 
 function redirect(string $path, int $statusCode = 302): void
@@ -93,58 +128,54 @@ function flash_get(): array
 
 const RATE_LIMIT_LOGIN_MAX_ATTEMPTS = 5;
 const RATE_LIMIT_LOGIN_WINDOW_MINUTES = 15;
+const RATE_LIMIT_REGISTER_MAX_ATTEMPTS = 5;
+const RATE_LIMIT_REGISTER_WINDOW_MINUTES = 15;
 
-function rate_limit_login_ok(): bool
+/**
+ * @return array<string, list<int>>
+ */
+function rate_limit_load(string $filename): array
+{
+    $basePath = $GLOBALS['app_base_path'] ?? dirname(__DIR__, 2);
+    $file = $basePath . '/storage/cache/' . $filename;
+    if (!is_file($file)) {
+        return [];
+    }
+    $raw = @file_get_contents($file);
+    if ($raw === false) {
+        return [];
+    }
+    $decoded = json_decode($raw, true);
+    return is_array($decoded) ? $decoded : [];
+}
+
+function rate_limit_ok(string $filename, int $maxAttempts, int $windowMinutes): bool
 {
     $ip = $_SERVER['REMOTE_ADDR'] ?? '';
     if ($ip === '') {
         return true;
     }
-    $basePath = $GLOBALS['app_base_path'] ?? dirname(__DIR__, 2);
-    $file = $basePath . '/storage/cache/login_attempts.json';
-    $data = [];
-    if (is_file($file)) {
-        $raw = @file_get_contents($file);
-        if ($raw !== false) {
-            $decoded = json_decode($raw, true);
-            if (is_array($decoded)) {
-                $data = $decoded;
-            }
-        }
-    }
-    $cutoff = time() - (RATE_LIMIT_LOGIN_WINDOW_MINUTES * 60);
-    $attempts = $data[$ip] ?? [];
-    $attempts = array_filter($attempts, fn ($ts) => $ts > $cutoff);
-    return count($attempts) < RATE_LIMIT_LOGIN_MAX_ATTEMPTS;
+    $data = rate_limit_load($filename);
+    $cutoff = time() - ($windowMinutes * 60);
+    $attempts = array_filter($data[$ip] ?? [], fn ($ts) => $ts > $cutoff);
+    return count($attempts) < $maxAttempts;
 }
 
-function rate_limit_login_retry_after_minutes(): int
+function rate_limit_retry_after_minutes(string $filename, int $maxAttempts, int $windowMinutes): int
 {
     $ip = $_SERVER['REMOTE_ADDR'] ?? '';
-    $basePath = $GLOBALS['app_base_path'] ?? dirname(__DIR__, 2);
-    $file = $basePath . '/storage/cache/login_attempts.json';
-    $data = [];
-    if (is_file($file)) {
-        $raw = @file_get_contents($file);
-        if ($raw !== false) {
-            $decoded = json_decode($raw, true);
-            if (is_array($decoded)) {
-                $data = $decoded;
-            }
-        }
-    }
-    $cutoff = time() - (RATE_LIMIT_LOGIN_WINDOW_MINUTES * 60);
-    $attempts = $data[$ip] ?? [];
-    $attempts = array_values(array_filter($attempts, fn ($ts) => $ts > $cutoff));
-    if (count($attempts) < RATE_LIMIT_LOGIN_MAX_ATTEMPTS) {
+    $data = rate_limit_load($filename);
+    $cutoff = time() - ($windowMinutes * 60);
+    $attempts = array_values(array_filter($data[$ip] ?? [], fn ($ts) => $ts > $cutoff));
+    if (count($attempts) < $maxAttempts) {
         return 0;
     }
     $oldest = min($attempts);
-    $retryAt = $oldest + (RATE_LIMIT_LOGIN_WINDOW_MINUTES * 60);
+    $retryAt = $oldest + ($windowMinutes * 60);
     return (int) max(0, ceil(($retryAt - time()) / 60));
 }
 
-function rate_limit_login_record(): void
+function rate_limit_record(string $filename, int $windowMinutes): void
 {
     $ip = $_SERVER['REMOTE_ADDR'] ?? '';
     if ($ip === '') {
@@ -155,23 +186,59 @@ function rate_limit_login_record(): void
     if (!is_dir($dir)) {
         @mkdir($dir, 0755, true);
     }
-    $file = $dir . '/login_attempts.json';
-    $data = [];
-    if (is_file($file)) {
-        $raw = @file_get_contents($file);
-        if ($raw !== false) {
-            $decoded = json_decode($raw, true);
-            if (is_array($decoded)) {
-                $data = $decoded;
-            }
-        }
-    }
-    $cutoff = time() - (RATE_LIMIT_LOGIN_WINDOW_MINUTES * 60);
-    $attempts = $data[$ip] ?? [];
-    $attempts = array_values(array_filter($attempts, fn ($ts) => $ts > $cutoff));
+    $file = $dir . '/' . $filename;
+    $data = rate_limit_load($filename);
+    $cutoff = time() - ($windowMinutes * 60);
+    $attempts = array_values(array_filter($data[$ip] ?? [], fn ($ts) => $ts > $cutoff));
     $attempts[] = time();
     $data[$ip] = $attempts;
     @file_put_contents($file, json_encode($data), LOCK_EX);
+}
+
+function rate_limit_login_ok(): bool
+{
+    return rate_limit_ok(
+        'login_attempts.json',
+        RATE_LIMIT_LOGIN_MAX_ATTEMPTS,
+        RATE_LIMIT_LOGIN_WINDOW_MINUTES
+    );
+}
+
+function rate_limit_login_retry_after_minutes(): int
+{
+    return rate_limit_retry_after_minutes(
+        'login_attempts.json',
+        RATE_LIMIT_LOGIN_MAX_ATTEMPTS,
+        RATE_LIMIT_LOGIN_WINDOW_MINUTES
+    );
+}
+
+function rate_limit_login_record(): void
+{
+    rate_limit_record('login_attempts.json', RATE_LIMIT_LOGIN_WINDOW_MINUTES);
+}
+
+function rate_limit_register_ok(): bool
+{
+    return rate_limit_ok(
+        'register_attempts.json',
+        RATE_LIMIT_REGISTER_MAX_ATTEMPTS,
+        RATE_LIMIT_REGISTER_WINDOW_MINUTES
+    );
+}
+
+function rate_limit_register_retry_after_minutes(): int
+{
+    return rate_limit_retry_after_minutes(
+        'register_attempts.json',
+        RATE_LIMIT_REGISTER_MAX_ATTEMPTS,
+        RATE_LIMIT_REGISTER_WINDOW_MINUTES
+    );
+}
+
+function rate_limit_register_record(): void
+{
+    rate_limit_record('register_attempts.json', RATE_LIMIT_REGISTER_WINDOW_MINUTES);
 }
 
 function app_log(string $level, string $message, array $context = []): void

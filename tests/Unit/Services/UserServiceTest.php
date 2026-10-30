@@ -29,7 +29,7 @@ class UserServiceTest extends TestCase
         $result = $service->createUser([
             'name' => '',
             'email' => 'a@b.com',
-            'password' => 'secret',
+            'password' => 'secret12',
         ]);
         $this->assertFalse($result['success']);
         $this->assertArrayHasKey('name', $result['errors']);
@@ -49,6 +49,20 @@ class UserServiceTest extends TestCase
         $this->assertArrayHasKey('password', $result['errors']);
     }
 
+    public function testCreateUserReturnsErrorsWhenPasswordTooShort(): void
+    {
+        $userModel = $this->createUserModelStub();
+        $roleModel = $this->createRoleModelStub();
+        $service = new UserService($userModel, $roleModel);
+        $result = $service->createUser([
+            'name' => 'Test',
+            'email' => 'a@b.com',
+            'password' => 'short',
+        ]);
+        $this->assertFalse($result['success']);
+        $this->assertArrayHasKey('password', $result['errors']);
+    }
+
     public function testCreateUserReturnsErrorsWhenEmailEmpty(): void
     {
         $userModel = $this->createUserModelStub();
@@ -57,10 +71,45 @@ class UserServiceTest extends TestCase
         $result = $service->createUser([
             'name' => 'Test',
             'email' => '',
-            'password' => 'secret',
+            'password' => 'secret12',
         ]);
         $this->assertFalse($result['success']);
         $this->assertArrayHasKey('email', $result['errors']);
+    }
+
+    public function testRegisterViewerFailsWhenViewerRoleMissing(): void
+    {
+        $userModel = $this->createUserModelStub();
+        $roleModel = $this->createRoleModelStub();
+        $roleModel->method('findBySlug')->with('viewer')->willReturn(null);
+        $service = new UserService($userModel, $roleModel);
+        $result = $service->registerViewer([
+            'name' => 'Novo',
+            'email' => 'novo@example.com',
+            'password' => 'secret12',
+        ]);
+        $this->assertFalse($result['success']);
+        $this->assertArrayHasKey('_form', $result['errors']);
+    }
+
+    public function testRegisterViewerAssignsViewerRole(): void
+    {
+        $userModel = $this->createMock(User::class);
+        $userModel->method('findByEmail')->willReturn(null);
+        $userModel->expects($this->once())->method('create')->willReturn(10);
+        $userModel->expects($this->once())->method('syncRoles')->with(10, [3]);
+
+        $roleModel = $this->createStub(Role::class);
+        $roleModel->method('findBySlug')->with('viewer')->willReturn(['id' => 3, 'slug' => 'viewer']);
+
+        $service = new UserService($userModel, $roleModel);
+        $result = $service->registerViewer([
+            'name' => 'Novo',
+            'email' => 'novo@example.com',
+            'password' => 'secret12',
+        ]);
+        $this->assertTrue($result['success']);
+        $this->assertSame(10, $result['id']);
     }
 
     public function testListUsersPaginatedReturnsStructure(): void

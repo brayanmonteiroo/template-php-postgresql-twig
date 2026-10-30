@@ -9,6 +9,8 @@ use App\Models\Role;
 
 class UserService
 {
+    public const MIN_PASSWORD_LENGTH = 8;
+
     public function __construct(
         private User $userModel,
         private Role $roleModel
@@ -62,15 +64,38 @@ class UserService
         if (!empty($errors)) {
             return ['success' => false, 'errors' => $errors];
         }
-        $data['password_hash'] = password_hash($data['password'], PASSWORD_BCRYPT);
+        $data['password_hash'] = password_hash($data['password'], PASSWORD_DEFAULT);
         unset($data['password']);
         $data['status'] = $data['status'] ?? 'active';
-        $id = $this->userModel->create($data);
         $roleIds = $data['role_ids'] ?? [];
+        unset($data['role_ids']);
+        $id = $this->userModel->create($data);
         if (!empty($roleIds)) {
             $this->userModel->syncRoles($id, array_map('intval', $roleIds));
         }
         return ['success' => true, 'id' => $id];
+    }
+
+    /**
+     * Registro público: cria usuário ativo com perfil Visualizador (viewer).
+     */
+    public function registerViewer(array $data): array
+    {
+        $viewer = $this->roleModel->findBySlug('viewer');
+        if ($viewer === null) {
+            if (\function_exists('app_log')) {
+                \app_log('error', 'Registro falhou: perfil viewer não encontrado');
+            }
+            return [
+                'success' => false,
+                'errors' => [
+                    '_form' => 'Não foi possível concluir o registro. Contate o administrador.',
+                ],
+            ];
+        }
+        $data['status'] = 'active';
+        $data['role_ids'] = [(int) $viewer['id']];
+        return $this->createUser($data);
     }
 
     public function updateUser(int $id, array $data): array
@@ -91,7 +116,7 @@ class UserService
             $update['email'] = $data['email'];
         }
         if (!empty($data['password'])) {
-            $update['password_hash'] = password_hash($data['password'], PASSWORD_BCRYPT);
+            $update['password_hash'] = password_hash($data['password'], PASSWORD_DEFAULT);
         }
         if (isset($data['status'])) {
             $update['status'] = $data['status'];
@@ -133,15 +158,26 @@ class UserService
         $email = trim($data['email'] ?? '');
         if ($email === '') {
             $errors['email'] = 'Email é obrigatório.';
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = 'Informe um e-mail válido.';
         } else {
             $existing = $this->userModel->findByEmail($email);
             if ($existing && (int) $existing['id'] !== (int) $excludeUserId) {
                 $errors['email'] = 'Este email já está em uso.';
             }
         }
-        if ($excludeUserId === null && empty($data['password'] ?? '')) {
-            $errors['password'] = 'Senha é obrigatória.';
+
+        $password = (string) ($data['password'] ?? '');
+        if ($excludeUserId === null) {
+            if ($password === '') {
+                $errors['password'] = 'Senha é obrigatória.';
+            } elseif (strlen($password) < self::MIN_PASSWORD_LENGTH) {
+                $errors['password'] = 'A senha deve ter pelo menos ' . self::MIN_PASSWORD_LENGTH . ' caracteres.';
+            }
+        } elseif ($password !== '' && strlen($password) < self::MIN_PASSWORD_LENGTH) {
+            $errors['password'] = 'A senha deve ter pelo menos ' . self::MIN_PASSWORD_LENGTH . ' caracteres.';
         }
+
         return $errors;
     }
 }

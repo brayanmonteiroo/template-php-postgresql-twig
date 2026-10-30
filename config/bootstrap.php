@@ -29,7 +29,8 @@ $GLOBALS['app_config'] = $config;
 
 require $basePath . '/src/Helpers/functions.php';
 
-security_headers();
+$cspNonce = base64_encode(random_bytes(16));
+security_headers($cspNonce);
 
 set_exception_handler(function (Throwable $e): void {
     $debug = $GLOBALS['app_config']['debug'] ?? false;
@@ -56,13 +57,11 @@ set_exception_handler(function (Throwable $e): void {
 $pdo = require $basePath . '/config/database.php';
 
 if (session_status() === PHP_SESSION_NONE) {
-    $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-        || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
     session_set_cookie_params([
         'lifetime' => $config['session_lifetime'] ?? 7200,
         'path' => '/',
         'domain' => '',
-        'secure' => $isSecure,
+        'secure' => request_is_https(),
         'httponly' => true,
         'samesite' => 'Lax',
     ]);
@@ -97,6 +96,7 @@ $twig->addGlobal(
     $authService->check() ? $permissionService->firstAccessiblePath() : '/login'
 );
 $twig->addGlobal('csrf_token', $_SESSION['csrf_token'] ?? '');
+$twig->addGlobal('csp_nonce', $cspNonce);
 $twig->addGlobal('flash_messages', flash_get());
 $twig->addFunction(new TwigFunction('build_query', function (array $params): string {
     $params = array_filter($params, fn ($v) => $v !== '' && $v !== null);

@@ -67,7 +67,7 @@ project/
 │   ├── Services/          # Regras de negócio (Auth, User, Role, Permission)
 │   └── Helpers/           # functions.php (redirect, CSRF, flash)
 ├── views/                  # Templates Twig
-│   ├── auth/              # Login
+│   ├── auth/              # Login e registro públicos
 │   ├── partials/           # Header, sidebar, alerts, footer
 │   └── ...                 # Por recurso (users, roles, permissions, etc.)
 ├── routes.php             # Definição das rotas (FastRoute)
@@ -127,13 +127,13 @@ Ambos recebem o container (e o nome da permissão no caso do Permission). Não h
 - Recebem o container no construtor.
 - Responsabilidade: ler entrada (GET/POST), chamar Services (e eventualmente Models), definir flash, renderizar view ou redirecionar.
 - Não contêm regras de negócio pesadas; essas ficam nos Services.
-- Exemplos: `AuthController` (login/logout), `UserController`, `RoleController`, `PermissionController`, `ProfileController`, `DashboardController`.
+- Exemplos: `AuthController` (login/registro/logout), `UserController`, `RoleController`, `PermissionController`, `ProfileController`, `DashboardController`.
 
 ### 5. Services
 
 - Vivem em `App\Services\*`.
 - Encapsulam regras de negócio e orquestram Models quando necessário.
-  - **AuthService:** login (verificação de senha, sessão), logout, usuário atual (`user()`, `check()`).
+  - **AuthService:** login (`password_verify` + hash dummy se e-mail inexistente; `password_needs_rehash`), logout, usuário atual com **revalidação no banco** a cada request (`findById` + `status=active`).
   - **PermissionService:** permissões do usuário logado (`getUserPermissions()`, `hasPermission()`), baseado em User + roles + permissions.
   - **UserService:** CRUD de usuários, atribuição de roles, validações.
   - **RoleService:** CRUD de papéis e vínculo com permissions.
@@ -185,8 +185,10 @@ Um usuário tem uma ou mais roles; cada role tem várias permissions. O Permissi
 
 ## Segurança
 
-- **Sessão:** cookie com httponly, samesite=Lax, secure em HTTPS; regeneração de ID após login.
-- **CSRF:** token em sessão; todo POST (login, logout, formulários) deve enviar `csrf_token` (campo ou header). Validação em `validate_csrf()` (helpers); falha → 403.
+- **Sessão:** cookie com httponly, samesite=Lax, secure em HTTPS; regeneração de ID após login; identidade revalidada no DB (usuário inativo/excluído perde a sessão).
+- **CSRF:** token em sessão; POST (login, registro, logout, formulários) envia `csrf_token`. Validação com `hash_equals`; rotação após login/registro; falha → 403.
+- **Senhas:** `PASSWORD_DEFAULT`, mínimo 8 caracteres; registro público (`/register`) atribui perfil `viewer`.
+- **Headers:** X-Frame-Options, nosniff, Referrer-Policy, CSP com nonce por request; HSTS quando HTTPS + `APP_ENV=production`.
 - **Senha:** armazenada com `password_hash()` (bcrypt); verificação com `password_verify()` no AuthService.
 - **Autorização:** após autenticação, cada rota protegida pode exigir uma permissão (slug). PermissionMiddleware consulta PermissionService e retorna 403 se o usuário não tiver a permissão.
 - **Saída:** Twig com autoescape; não há `{!! ... !!}` com conteúdo arbitrário do usuário.
@@ -197,7 +199,7 @@ Um usuário tem uma ou mais roles; cada role tem várias permissions. O Permissi
 
 - **Layout e componentes:** Bootstrap `6.0.0-alpha.1` + shell próprio (`public/assets/app/`), Bootstrap Icons, IBM Plex Sans/Mono, light/dark via `data-bs-theme`.
 - **Páginas:** Twig que estendem `layout.twig` (ou `auth/layout.twig`). Listagens com tabelas, filtros e paginação; formulários com validação visual.
-- **Comportamento:** Bootstrap ESM (`type="module"`) + `app.js` (tema e nav ativa); login com script leve para revelar senha demo.
+- **Comportamento:** Bootstrap ESM (`type="module"`) + `app.js` (tema e nav ativa); scripts com `nonce` CSP; login/registro sem credenciais de demo no HTML.
 
 ---
 

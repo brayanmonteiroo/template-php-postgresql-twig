@@ -1,0 +1,66 @@
+{% extends 'auth/layout.twig' %}
+
+{% block title %}Registrar | Template Admin{% endblock %}
+
+{% block content %}
+<div class="auth-shell">
+    <section class="auth-visual" aria-hidden="true">
+        <div class="auth-visual__brand">
+            <img src="/assets/brand/brayan-logo.png" alt="" width="36" height="36">
+            <span>Template Admin</span>
+        </div>
+        <div class="auth-visual__copy">
+            <h1>Criar conta</h1>
+            <p>Registre-se para acessar o painel com o perfil Visualizador.</p>
+        </div>
+        <p class="small mb-0" style="position:relative;z-index:1;color:#64748b;">PHP 8.5 · Twig · Bootstrap 6</p>
+    </section>
+
+    <section class="auth-panel">
+        <div class="auth-card">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <h2>Registrar</h2>
+                    <p class="lead mb-0">Preencha seus dados para criar a conta.</p>
+                </div>
+                <button type="button" class="app-icon-btn" data-theme-toggle aria-label="Alternar tema" title="Alternar tema">
+                    <i class="bi bi-moon-stars" data-theme-icon aria-hidden="true"></i>
+                </button>
+            </div>
+
+            {% if errors._form is defined %}
+            <div class="alert theme-danger d-flex align-items-start gap-2 mb-3" role="alert">
+                <i class="bi bi-x-circle mt-1" aria-hidden="true"></i>
+                <p class="mb-0">{{ errors._form }}</p>
+            </div>
+            {% endif %}
+
+            <form method="post" action="/register" class="vstack gap-3">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <div>
+                    <label class="form-label" for="name">Nome</label>
+                    <input type="text" class="form-control {{ errors.name is defined ? 'is-invalid' : '' }}" id="name" name="name" value="{{ name|default('') }}" required autofocus autocomplete="name">
+                    {% if errors.name is defined %}<div class="invalid-feedback">{{ errors.name }}</div>{% endif %}
+                </div>
+                <div>
+                    <label class="form-label" for="email">E-mail</label>
+                    <input type="email" class="form-control {{ errors.email is defined ? 'is-invalid' : '' }}" id="email" name="email" value="{{ email|default('') }}" required autocomplete="username">
+                    {% if errors.email is defined %}<div class="invalid-feedback">{{ errors.email }}</div>{% endif %}
+                </div>
+                <div>
+                    <label class="form-label" for="password">Senha</label>
+                    <input type="password" class="form-control {{ errors.password is defined ? 'is-invalid' : '' }}" id="password" name="password" required autocomplete="new-password" minlength="8">
+                    {% if errors.password is defined %}<div class="invalid-feedback">{{ errors.password }}</div>{% endif %}
+                    <div class="form-text">Mínimo de 8 caracteres.</div>
+                </div>
+                <button type="submit" class="btn-solid theme-primary w-100">Criar conta</button>
+            </form>
+
+            <p class="text-secondary small mt-3 mb-0 text-center">
+                Já tem conta?
+                <a href="/login">Entrar</a>
+            </p>
+        </div>
+    </section>
+</div>
+{% endblock %}

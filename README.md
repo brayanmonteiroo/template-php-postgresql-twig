@@ -100,10 +100,12 @@ docker compose -f compose.yaml -f compose.prod.yaml exec server php database/see
 
 ## Rotas
 
-- GET `/login` – formulário de login
-- POST `/login` – autenticar
-- POST `/logout` – sair
-- GET `/`, `/dashboard` – dashboard (autenticado)
+- GET `/login` – formulário de login (sem credenciais de demo no HTML)
+- POST `/login` – autenticar (rate limit; CSRF; regenera sessão)
+- GET `/register` – formulário de registro público
+- POST `/register` – cria conta com perfil **Visualizador** + login automático
+- POST `/logout` – sair (POST + CSRF)
+- GET `/`, `/dashboard` – painel (`dashboard.view`)
 - GET `/profile`, POST `/profile` – editar próprio perfil (nome, email, senha)
 - GET/POST `/users` – listar / criar (`user.view` / `user.create`)
 - GET `/users/{id}/edit`, POST `/users/{id}` – editar (`user.edit`)
@@ -124,6 +126,8 @@ UI própria (**Precision Console**) sobre **Bootstrap `6.0.0-alpha.1`**, Bootstr
 | `public/assets/brand/` | Logo e favicons |
 
 Light/dark via `data-bs-theme` + toggle persistido. Sidebar à esquerda; drawer no mobile.
+
+**Segurança (auth):** senhas com `PASSWORD_DEFAULT` (mín. 8 caracteres); sessão revalidada a cada request (`status=active`); CSRF com rotação pós-login/registro; CSP com nonce; HSTS em HTTPS + `APP_ENV=production`. Conta nova via `/register` recebe perfil `viewer`.
 
 Skills oficiais do Bootstrap (AI): `.agents/skills/bootstrap-*` (também em `.cursor/skills/` via symlink). Ver [Using Bootstrap with AI](https://getbootstrap.com/docs/6.0/getting-started/ai/).
 

@@ -7,6 +7,8 @@ use FastRoute\RouteCollector;
 return \FastRoute\simpleDispatcher(function (RouteCollector $r) {
     $r->addRoute('GET', '/login', 'AuthController@showLogin');
     $r->addRoute('POST', '/login', 'AuthController@login');
+    $r->addRoute('GET', '/register', 'AuthController@showRegister');
+    $r->addRoute('POST', '/register', 'AuthController@register');
     $r->addRoute('POST', '/logout', 'AuthController@logout');
 
     $r->addRoute('GET', '/', 'auth:DashboardController@index:dashboard.view');

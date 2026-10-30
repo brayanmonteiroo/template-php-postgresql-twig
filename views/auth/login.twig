@@ -11,7 +11,7 @@
         </div>
         <div class="auth-visual__copy">
             <h1>Painel administrativo</h1>
-            <p>Gerencie usuários, papéis e permissões em um sistema PHP com Twig e PostgreSQL.</p>
+            <p>Gerencie usuários, perfis e permissões em um sistema PHP com Twig e PostgreSQL.</p>
         </div>
         <p class="small mb-0" style="position:relative;z-index:1;color:#64748b;">PHP 8.5 · Twig · Bootstrap 6</p>
     </section>
@@ -39,42 +39,20 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <div>
                     <label class="form-label" for="email">E-mail</label>
-                    <input type="email" class="form-control" id="email" name="email" value="{{ email|default('admin@example.com') }}" required autofocus autocomplete="username">
+                    <input type="email" class="form-control" id="email" name="email" value="{{ email|default('') }}" required autofocus autocomplete="username">
                 </div>
                 <div>
                     <label class="form-label" for="password">Senha</label>
-                    <input type="password" class="form-control" id="password" name="password" required autocomplete="current-password">
+                    <input type="password" class="form-control" id="password" name="password" required autocomplete="current-password" minlength="8">
                 </div>
                 <button type="submit" class="btn-solid theme-primary w-100">Entrar</button>
             </form>
 
-            <div class="auth-demo">
-                Credenciais de demonstração<br>
-                Login: <code class="font-mono">admin@example.com</code><br>
-                Senha: <span id="demo-password-mask" class="font-mono" aria-live="polite">••••••••</span>
-                <button type="button" class="btn-text theme-primary btn-sm p-0 ms-1 align-baseline" id="demo-password-toggle" data-password="admin123">Mostrar</button>
-            </div>
+            <p class="text-secondary small mt-3 mb-0 text-center">
+                Não tem conta?
+                <a href="/register">Criar conta</a>
+            </p>
         </div>
     </section>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-(function () {
-    var btn = document.getElementById('demo-password-toggle');
-    var mask = document.getElementById('demo-password-mask');
-    if (!btn || !mask) return;
-    btn.addEventListener('click', function () {
-        var pwd = btn.getAttribute('data-password');
-        if (btn.textContent === 'Mostrar') {
-            mask.textContent = pwd;
-            btn.textContent = 'Ocultar';
-        } else {
-            mask.textContent = '••••••••';
-            btn.textContent = 'Mostrar';
-        }
-    });
-})();
-</script>
 {% endblock %}

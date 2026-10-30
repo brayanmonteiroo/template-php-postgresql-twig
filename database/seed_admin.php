@@ -13,7 +13,7 @@ $pdo = require $basePath . '/config/database.php';
 $email = 'admin@example.com';
 $password = 'admin123';
 $name = 'Administrador';
-$hash = password_hash($password, PASSWORD_BCRYPT);
+$hash = password_hash($password, PASSWORD_DEFAULT);
 
 $stmt = $pdo->prepare('INSERT INTO users (name, email, password_hash, status) VALUES (?, ?, ?, ?) ON CONFLICT (email) DO NOTHING');
 $stmt->execute([$name, $email, $hash, 'active']);
